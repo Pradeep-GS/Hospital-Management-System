@@ -5,11 +5,11 @@ import Header from '../components/common/Header';
 
 export const HospitalAdminLayout = () => {
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-['Inter',sans-serif]">
+    <div className="flex min-h-screen bg-[#F3F6FB] text-slate-900 font-['Inter',sans-serif]">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Header title="Hospital Management Console" />
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
           <Outlet />
         </main>
       </div>

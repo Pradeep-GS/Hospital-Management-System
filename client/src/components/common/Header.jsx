@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, LogOut, Building2, ChevronDown, Search, ShieldCheck, User, KeyRound } from 'lucide-react';
+import { Bell, LogOut, Building2, ChevronDown, Search, User, KeyRound, CheckCircle2, Shield } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export const Header = ({ title = 'Dashboard' }) => {
@@ -34,11 +34,11 @@ export const Header = ({ title = 'Dashboard' }) => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (!globalSearch.trim()) return;
-    alert(`🔍 Global Search Query: "${globalSearch}" — Filtering records across Patients, Doctors, and Inventory.`);
+    alert(`🔍 Global Search: "${globalSearch}" — Searching patient records, doctors, queue, and inventory.`);
   };
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-3.5 flex items-center justify-between shadow-xs">
+    <header className="bg-white border-b border-[#E2E8F0] sticky top-0 z-30 px-6 py-3.5 flex items-center justify-between shadow-[0_2px_10px_rgba(15,23,42,0.04)] font-['Inter',sans-serif]">
       
       {/* Left: Breadcrumbs & Page Title */}
       <div className="flex items-center gap-6">
@@ -54,11 +54,11 @@ export const Header = ({ title = 'Dashboard' }) => {
               </React.Fragment>
             ))}
           </nav>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h1>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight font-['Poppins',sans-serif]">{title}</h1>
         </div>
       </div>
 
-      {/* Center: Global Search Bar */}
+      {/* Center: Enterprise Global Search Bar */}
       <div className="hidden lg:block flex-1 max-w-md mx-8">
         <form onSubmit={handleSearchSubmit} className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
@@ -67,19 +67,19 @@ export const Header = ({ title = 'Dashboard' }) => {
             value={globalSearch}
             onChange={(e) => setGlobalSearch(e.target.value)}
             placeholder="Global search patients, doctors, queue, medicines, rooms..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 focus:bg-white transition-all shadow-xs"
+            className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 focus:bg-white transition-all shadow-xs"
           />
           <kbd className="hidden sm:inline-block absolute right-3 top-2.5 text-[10px] font-mono text-slate-400 bg-white border border-slate-200 px-1.5 rounded shadow-2xs">⌘K</kbd>
         </form>
       </div>
 
-      {/* Right: Facility, Role, Notifications & User Chip */}
+      {/* Right: Hospital Selector, Badges, Notifications & Profile */}
       <div className="flex items-center gap-3.5">
         
-        {/* Hospital Facility Badge */}
+        {/* Hospital Facility Badge & Scope Selector */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs shadow-2xs">
           <Building2 className="w-3.5 h-3.5 text-blue-600" />
-          <span className="text-blue-950 font-bold">{user?.hospitalName || 'Facility Center'}</span>
+          <span className="text-blue-950 font-bold">{user?.hospitalName || 'Primary Hospital Scope'}</span>
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         </div>
 
@@ -88,42 +88,46 @@ export const Header = ({ title = 'Dashboard' }) => {
           {badge.label}
         </span>
 
-        {/* Notifications Bell */}
+        {/* Notifications Bell Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors relative"
-            title="Notifications"
+            className="w-9 h-9 rounded-xl bg-[#F8FAFC] hover:bg-slate-200/80 border border-[#E2E8F0] flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors relative shadow-2xs"
+            title="System Alerts"
           >
             <Bell className="w-4 h-4" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600 ring-2 ring-white"></span>
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 space-y-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.1)] p-4 space-y-3 z-50">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">System Notifications</h4>
-                <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full">Live Alerts</span>
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-['Poppins',sans-serif]">Live System Alerts</h4>
+                <span className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">Active</span>
               </div>
               <div className="space-y-2 text-xs">
-                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:bg-blue-50/50 transition-colors">
-                  <p className="text-slate-800 font-semibold">EMR Access Window Verified</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Session token encrypted via AES-256 JWT claim</p>
+                <div className="p-2.5 bg-[#F8FAFC] rounded-xl border border-slate-100 hover:bg-blue-50/50 transition-colors">
+                  <p className="text-slate-800 font-semibold flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-blue-600" /> Multi-Tenant Isolation Verified
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Facility scope locked to {user?.hospitalName || 'Tenant'}</p>
                 </div>
-                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 hover:bg-blue-50/50 transition-colors">
-                  <p className="text-slate-800 font-semibold">Hospital Data Isolation Active</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Facility scope: {user?.hospitalName || 'Primary Tenant'}</p>
+                <div className="p-2.5 bg-[#F8FAFC] rounded-xl border border-slate-100 hover:bg-blue-50/50 transition-colors">
+                  <p className="text-slate-800 font-semibold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Queue Synchronization Engine
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Real-time doctor appointment queue listening</p>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* User Profile Menu Dropdown */}
+        {/* User Profile Chip Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2.5 p-1 rounded-xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200 transition-all"
+            className="flex items-center gap-2.5 p-1 rounded-xl bg-[#F8FAFC] hover:bg-slate-200/70 border border-[#E2E8F0] transition-all shadow-2xs"
           >
             <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
               {user ? user.fullName?.charAt(0) : 'U'}
@@ -136,21 +140,11 @@ export const Header = ({ title = 'Dashboard' }) => {
           </button>
 
           {showDropdown && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 mt-2 w-56 bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.1)] p-2 z-50">
               <div className="p-2.5 border-b border-slate-100 mb-1">
                 <p className="text-xs font-bold text-slate-900">{user?.fullName}</p>
                 <p className="text-[11px] text-slate-500 font-mono">{user?.email}</p>
               </div>
-
-              <button
-                onClick={() => {
-                  setShowDropdown(false);
-                  navigate('/profile');
-                }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
-              >
-                <User className="w-4 h-4 text-slate-500" /> View Profile & Settings
-              </button>
 
               <button
                 onClick={() => {

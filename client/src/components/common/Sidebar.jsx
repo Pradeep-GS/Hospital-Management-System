@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   Stethoscope, LayoutDashboard, Calendar, FileText, Pill, Users,
   Building2, QrCode, UserPlus, Bed, Wind, Receipt, Clock,
-  Settings, LogOut, ChevronRight, Activity, ShieldCheck
+  Settings, LogOut, ChevronRight, Activity
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -15,10 +15,10 @@ export const Sidebar = () => {
     switch (role) {
       case 'DOCTOR':
         return [
-          { label: 'Dashboard', path: '/doctor/dashboard', icon: LayoutDashboard },
+          { label: 'Dashboard Overview', path: '/doctor/dashboard', icon: LayoutDashboard },
           { label: "Today's Queue", path: '/doctor/queue', icon: Clock },
           { label: 'EMR Clinical Window', path: '/doctor/emr', icon: FileText },
-          { label: 'Prescriptions', path: '/doctor/prescriptions', icon: Pill },
+          { label: 'Prescriptions Roster', path: '/doctor/prescriptions', icon: Pill },
           { label: 'Profile Settings', path: '/doctor/profile', icon: Settings },
         ];
       case 'PATIENT':
@@ -31,7 +31,7 @@ export const Sidebar = () => {
         ];
       case 'RECEPTIONIST':
         return [
-          { label: 'Reception Dashboard', path: '/reception/dashboard', icon: LayoutDashboard },
+          { label: 'Reception Desk', path: '/reception/dashboard', icon: LayoutDashboard },
           { label: 'Register Patient', path: '/reception/register-patient', icon: UserPlus },
           { label: 'Universal QR Scanner', path: '/reception/qr-scanner', icon: QrCode },
           { label: 'Emergency Room Allocation', path: '/reception/emergency-admission', icon: Bed },
@@ -68,25 +68,25 @@ export const Sidebar = () => {
   const navItems = getNavItems();
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 min-h-screen shadow-xs font-['Inter',sans-serif]">
+    <aside className="w-64 bg-[#F8FAFC] border-r border-[#E2E8F0] flex flex-col justify-between shrink-0 min-h-screen font-['Inter',sans-serif]">
       <div>
         {/* Enterprise Brand Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+        <div className="p-5 border-b border-[#E2E8F0] flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20 text-white">
             <Stethoscope className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="font-extrabold text-base text-slate-900 tracking-tight leading-none">
-              AegisCare <span className="text-[10px] bg-blue-50 text-blue-600 font-bold px-1.5 py-0.5 rounded border border-blue-200">v1.0</span>
+            <h2 className="font-extrabold text-base text-slate-900 tracking-tight leading-none font-['Poppins',sans-serif]">
+              AegisCare <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded border border-blue-200">v1.0</span>
             </h2>
             <p className="text-[11px] text-slate-500 font-medium mt-0.5">Enterprise Hospital ERP</p>
           </div>
         </div>
 
         {/* Navigation List */}
-        <div className="p-3 space-y-1">
-          <p className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            Enterprise Portal
+        <div className="p-3.5 space-y-1.5">
+          <p className="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            Portal Navigation
           </p>
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -95,18 +95,24 @@ export const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600 font-bold border border-blue-200 shadow-2xs'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20'
+                      : 'text-slate-600 hover:bg-[#EFF6FF] hover:text-blue-700 font-medium'
                   }`
                 }
               >
-                <div className="flex items-center gap-3">
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 opacity-40" />
+                {({ isActive }) => (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-1 rounded-lg ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-600'}`}>
+                        <Icon className="w-3.5 h-3.5" />
+                      </div>
+                      <span>{item.label}</span>
+                    </div>
+                    <ChevronRight className={`w-3.5 h-3.5 ${isActive ? 'text-white/80' : 'opacity-30'}`} />
+                  </>
+                )}
               </NavLink>
             );
           })}
@@ -114,8 +120,8 @@ export const Sidebar = () => {
       </div>
 
       {/* Sidebar User Footer */}
-      <div className="p-4 border-t border-slate-100 space-y-3 bg-slate-50/50">
-        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-2xs">
+      <div className="p-4 border-t border-[#E2E8F0] space-y-3 bg-white/60">
+        <div className="p-3 bg-white rounded-xl border border-[#E2E8F0] text-xs shadow-2xs">
           <p className="font-bold text-slate-900 leading-tight">{user?.fullName}</p>
           <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">{user?.email}</p>
         </div>

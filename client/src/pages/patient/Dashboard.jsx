@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { User, QrCode, Calendar, Shield, Activity, ArrowRight } from 'lucide-react';
+import { User, QrCode, Calendar, Shield, Activity, ArrowRight, Receipt, FileText } from 'lucide-react';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { motion } from 'framer-motion';
 
 export const PatientDashboard = () => {
   const [qrData, setQrData] = useState(null);
@@ -26,34 +27,106 @@ export const PatientDashboard = () => {
   if (loading || !qrData) return <div className="p-8 text-center text-slate-500 font-medium">Loading Patient Portal...</div>;
 
   return (
-    <div className="space-y-6 font-['Inter',sans-serif]">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-8 font-['Inter',sans-serif]"
+    >
       <Helmet>
         <title>Patient Portal | AegisCare ERP</title>
       </Helmet>
 
-      {/* Top Banner */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-xs">
-            <User className="w-6 h-6" />
+      {/* 1. GREETING HERO CARD */}
+      <div className="bg-gradient-to-r from-blue-700 via-indigo-800 to-slate-900 rounded-3xl p-8 text-white shadow-[0_4px_20px_rgba(15,23,42,0.08)] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="absolute -top-12 -right-12 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 space-y-3 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-blue-100">
+            <User className="w-3.5 h-3.5 text-teal-300" /> Patient Health Care Portal
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 font-['Poppins',sans-serif]">Hello, {qrData.fullName}</h2>
-            <p className="text-xs text-slate-500 font-mono">Universal Patient ID: {qrData.universalPatientId}</p>
-          </div>
+
+          <h1 className="text-3xl font-extrabold tracking-tight text-white font-['Poppins',sans-serif]">
+            👋 Hello, {qrData.fullName}
+          </h1>
+
+          <p className="text-xs text-blue-100/90 font-medium leading-relaxed">
+            Manage your doctor appointments, view encrypted EMR health records, access tax invoice receipts, and present your Universal QR Health Passport.
+          </p>
         </div>
 
-        <button
-          onClick={() => navigate('/patient/appointments')}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-xs flex items-center justify-center gap-2"
-        >
-          <Calendar className="w-4 h-4" /> Book Doctor Appointment
-        </button>
+        <div className="relative z-10 shrink-0">
+          <button
+            onClick={() => navigate('/patient/appointments')}
+            className="bg-white hover:bg-blue-50 text-blue-800 font-bold px-5 py-3 rounded-2xl text-xs shadow-md transition-all flex items-center gap-2"
+          >
+            <Calendar className="w-4 h-4 text-blue-600" /> Book Doctor Appointment
+          </button>
+        </div>
       </div>
 
+      {/* 2. SOFT ACCENT KPI CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs">
+        <motion.div
+          whileHover={{ y: -3 }}
+          transition={{ duration: 0.15 }}
+          onClick={() => navigate('/patient/appointments')}
+          className="bg-[#EFF6FF] border border-blue-200 p-6 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] cursor-pointer flex items-center justify-between"
+        >
+          <div className="space-y-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Appointments</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-extrabold text-blue-950 font-['Poppins',sans-serif]">{appointments.length}</span>
+              <span className="text-[11px] font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">Scheduled</span>
+            </div>
+            <p className="text-[11px] text-blue-600 font-medium">Doctor visits roster</p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/30 shrink-0">
+            <Calendar className="w-6 h-6" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ y: -3 }}
+          transition={{ duration: 0.15 }}
+          onClick={() => navigate('/patient/emr')}
+          className="bg-[#ECFDF5] border border-emerald-200 p-6 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] cursor-pointer flex items-center justify-between"
+        >
+          <div className="space-y-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">EMR Health Vault</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-extrabold text-emerald-950 font-['Poppins',sans-serif]">Encrypted</span>
+            </div>
+            <p className="text-[11px] text-emerald-600 font-medium">Clinical vitals & records</p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/30 shrink-0">
+            <FileText className="w-6 h-6" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ y: -3 }}
+          transition={{ duration: 0.15 }}
+          onClick={() => navigate('/patient/bills')}
+          className="bg-[#FFF7ED] border border-orange-200 p-6 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.04)] cursor-pointer flex items-center justify-between"
+        >
+          <div className="space-y-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-orange-700">Billing History</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-extrabold text-orange-950 font-['Poppins',sans-serif]">Receipts</span>
+            </div>
+            <p className="text-[11px] text-orange-600 font-medium">GST Invoices paid</p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/30 shrink-0">
+            <Receipt className="w-6 h-6" />
+          </div>
+        </motion.div>
+      </div>
+
+      {/* 3. UNIVERSAL QR PASSPORT & APPOINTMENTS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Universal QR Passport Card */}
-        <div className="md:col-span-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-6 rounded-3xl text-center space-y-4 shadow-sm">
+        <div className="md:col-span-5 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 p-6 rounded-3xl text-center space-y-4 shadow-[0_4px_20px_rgba(15,23,42,0.06)]">
           <div className="inline-flex items-center gap-2 bg-white text-blue-700 px-3.5 py-1 rounded-full text-xs font-bold border border-blue-200 shadow-2xs">
             <Shield className="w-3.5 h-3.5 text-blue-600" /> Universal Health Passport
           </div>
@@ -68,14 +141,14 @@ export const PatientDashboard = () => {
           </div>
 
           <p className="text-xs text-slate-600 font-medium leading-relaxed">
-            Show this Universal QR Passport at reception desks for instant check-in across all AegisCare network hospitals.
+            Present this Universal QR Passport at reception desks for instant check-in across all AegisCare network hospitals.
           </p>
         </div>
 
         {/* Appointments Summary */}
-        <div className="md:col-span-7 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-4">
+        <div className="md:col-span-7 bg-white border border-[#E2E8F0] p-6 rounded-3xl shadow-[0_4px_20px_rgba(15,23,42,0.06)] space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
+            <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
               <Activity className="w-5 h-5 text-blue-600" /> Active & Scheduled Appointments
             </h3>
             <button onClick={() => navigate('/patient/appointments')} className="text-xs text-blue-600 hover:underline font-bold">
@@ -91,8 +164,8 @@ export const PatientDashboard = () => {
                   apt.isCurrentActive
                     ? 'bg-emerald-50/80 border-emerald-300 shadow-2xs'
                     : apt.isGreyedOut
-                    ? 'bg-slate-50 border-slate-200 opacity-50'
-                    : 'bg-slate-50 border-slate-200'
+                    ? 'bg-[#F8FAFC] border-slate-200 opacity-50'
+                    : 'bg-[#F8FAFC] border-slate-200'
                 }`}
               >
                 <div>
@@ -117,7 +190,7 @@ export const PatientDashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

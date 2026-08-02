@@ -3,6 +3,7 @@ import { Users, UserPlus, Search, Edit2, KeyRound, Trash2, Eye, CheckCircle2, Sh
 import api from '../../services/api';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
+import { motion } from 'framer-motion';
 
 export const StaffManagement = () => {
   const [staff, setStaff] = useState([]);
@@ -130,18 +131,23 @@ export const StaffManagement = () => {
   if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading Hospital Staff Directory...</div>;
 
   return (
-    <div className="space-y-6 font-['Inter',sans-serif]">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-6 font-['Inter',sans-serif]"
+    >
       <Helmet>
         <title>Staff Management | AegisCare ERP</title>
       </Helmet>
 
       {/* Header */}
-      <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-[#E2E8F0] p-6 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.06)] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
             <Users className="w-5 h-5 text-blue-600" /> Hospital Staff Management Module
           </h2>
-          <p className="text-xs text-slate-500">Manage internal hospital employees, roles, status, credentials & password resets</p>
+          <p className="text-xs text-slate-500 mt-0.5">Manage internal hospital employees, roles, status, credentials & password resets</p>
         </div>
 
         <button
@@ -153,15 +159,15 @@ export const StaffManagement = () => {
       </div>
 
       {/* Search & Role Filter Bar */}
-      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.06)] flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by Employee ID, Name, or Email..."
-            className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+            className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-medium"
           />
         </div>
 
@@ -170,7 +176,7 @@ export const StaffManagement = () => {
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium"
+            className="bg-[#F8FAFC] border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium focus:outline-none focus:border-blue-600"
           >
             <option value="">All Roles</option>
             <option value="DOCTOR">Doctor</option>
@@ -186,11 +192,11 @@ export const StaffManagement = () => {
         </div>
       </div>
 
-      {/* Staff Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* Enterprise Staff Table with Sticky Header & Hover Effects */}
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.06)] overflow-hidden">
+        <div className="overflow-x-auto max-h-[500px] custom-scrollbar">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider font-semibold">
+            <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-slate-700 uppercase tracking-wider font-bold sticky top-0 z-10 shadow-2xs">
               <tr>
                 <th className="p-4">Emp ID</th>
                 <th className="p-4">Full Name</th>
@@ -203,15 +209,15 @@ export const StaffManagement = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredStaff.map((emp) => (
-                <tr key={emp._id} className="hover:bg-slate-50/80 transition-colors">
+                <tr key={emp._id} className="hover:bg-blue-50/40 transition-colors">
                   <td className="p-4 font-mono font-bold text-blue-600">{emp.employeeId || 'EMP-000'}</td>
                   <td className="p-4 font-bold text-slate-900">{emp.fullName}</td>
                   <td className="p-4">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                       {emp.role}
                     </span>
                   </td>
-                  <td className="p-4 text-slate-600">{emp.department || 'General'}</td>
+                  <td className="p-4 text-slate-600 font-medium">{emp.department || 'General'}</td>
                   <td className="p-4 text-slate-600 font-mono text-[11px]">{emp.email}</td>
                   <td className="p-4">
                     <button
@@ -228,22 +234,15 @@ export const StaffManagement = () => {
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => { setSelectedStaff(emp); setShowViewModal(true); }}
-                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        title="View Profile"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <button
                         onClick={() => handleOpenEdit(emp)}
-                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                        className="p-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors"
                         title="Edit Details"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => { setSelectedStaff(emp); setShowResetModal(true); }}
-                        className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100"
+                        className="p-2 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 transition-colors"
                         title="Reset Password"
                       >
                         <KeyRound className="w-3.5 h-3.5" />
@@ -254,7 +253,7 @@ export const StaffManagement = () => {
               ))}
               {filteredStaff.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                  <td colSpan={7} className="p-8 text-center text-slate-400 font-medium">
                     No employee records match the search filter.
                   </td>
                 </tr>
@@ -267,7 +266,7 @@ export const StaffManagement = () => {
       {/* Add / Edit Staff Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 p-6 rounded-3xl max-w-lg w-full shadow-2xl space-y-4">
+          <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl max-w-lg w-full shadow-2xl space-y-4">
             <h3 className="text-base font-bold text-slate-900 font-['Poppins',sans-serif]">
               {selectedStaff ? `Edit Employee ${selectedStaff.employeeId}` : 'Add New Hospital Employee'}
             </h3>
@@ -278,7 +277,7 @@ export const StaffManagement = () => {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                  className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl p-2.5 text-slate-900"
                   required
                   placeholder="Dr. Gregory House"
                 />
@@ -291,7 +290,7 @@ export const StaffManagement = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl p-2.5 text-slate-900"
                     required
                     placeholder="house@metrohospital.org"
                   />
@@ -302,7 +301,7 @@ export const StaffManagement = () => {
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl p-2.5 text-slate-900"
                     required
                     placeholder="+1-555-0101"
                   />
@@ -315,7 +314,7 @@ export const StaffManagement = () => {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl p-2.5 text-slate-900 font-medium"
                   >
                     <option value="DOCTOR">Doctor</option>
                     <option value="NURSE">Nurse</option>
@@ -334,7 +333,7 @@ export const StaffManagement = () => {
                     type="text"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl p-2.5 text-slate-900"
                     placeholder="Internal Medicine"
                   />
                 </div>
@@ -347,7 +346,7 @@ export const StaffManagement = () => {
                     type="text"
                     value={designation}
                     onChange={(e) => setDesignation(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl p-2.5 text-slate-900"
                     placeholder="Chief Diagnostician"
                   />
                 </div>
@@ -356,7 +355,7 @@ export const StaffManagement = () => {
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl p-2.5 text-slate-900"
                   >
                     <option value="MALE">Male</option>
                     <option value="FEMALE">Female</option>
@@ -379,7 +378,7 @@ export const StaffManagement = () => {
       {/* Reset Password Modal */}
       {showResetModal && selectedStaff && (
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
+          <div className="bg-white border border-[#E2E8F0] p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <h3 className="text-base font-bold text-slate-900 font-['Poppins',sans-serif]">
               Reset Password for {selectedStaff.fullName}
             </h3>
@@ -397,13 +396,13 @@ export const StaffManagement = () => {
                   type="text"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono"
+                  className="w-full bg-[#F8FAFC] border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono"
                   required
                 />
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowResetModal(false)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700">Cancel</button>
+                <button type="button" onClick={() => setShowResetModal(false)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-medium">Cancel</button>
                 <button type="submit" className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold">
                   Confirm Password Reset
                 </button>
@@ -413,7 +412,7 @@ export const StaffManagement = () => {
         </div>
       )}
 
-    </div>
+    </motion.div>
   );
 };
 

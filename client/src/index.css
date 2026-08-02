@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 min-h-screen overflow-x-hidden font-['Inter',sans-serif];
+    @apply bg-[#F3F6FB] text-slate-900 min-h-screen overflow-x-hidden font-['Inter',sans-serif];
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -12,25 +12,53 @@
   }
 }
 
-/* ── AegisCare Enterprise Light ERP Design Tokens ── */
-.glass-panel {
-  @apply bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+/* ── AegisCare Enterprise SaaS ERP Design System Tokens ── */
+
+.bg-erp-app {
+  background-color: #F3F6FB;
 }
 
-.glass-panel-accent {
-  @apply bg-gradient-to-br from-white via-slate-50 to-blue-50/50 border border-blue-200/70 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+.bg-erp-sidebar {
+  background-color: #F8FAFC;
+}
+
+.bg-erp-navbar {
+  background-color: #FFFFFF;
 }
 
 .erp-card {
-  @apply bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem; /* 16px */
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  transition: all 0.2s ease-in-out;
+}
+
+.erp-card:hover {
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
+}
+
+.glass-panel {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+  transition: all 0.2s ease-in-out;
+}
+
+.glass-panel-accent {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #EFF6FF 100%);
+  border: 1px solid #CBD5E1;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 
 .erp-input {
-  @apply w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all;
+  @apply w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all;
 }
 
 .erp-select {
-  @apply w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all;
+  @apply w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all;
 }
 
 .erp-button-primary {
@@ -65,7 +93,7 @@
   background: #94A3B8;
 }
 
-/* NProgress Progress Bar Styling */
+/* NProgress Progress Bar */
 #nprogress .bar {
   background: #2563EB !important;
   height: 3px !important;
