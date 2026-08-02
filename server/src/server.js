@@ -62,6 +62,16 @@ app.use('/reception', receptionRoutes);
 app.use('/patients', patientRoutes);
 app.use('/pharmacy', pharmacyRoutes);
 
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ONLINE',
+    service: 'AegisCare Enterprise Multi-Tenant Hospital Management Platform API',
+    version: '1.0.0',
+    healthCheck: '/api/health',
+    apiBase: '/api/v1'
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ONLINE',
