@@ -76,40 +76,56 @@ router.post('/hospitals/:id/approve', async (req, res) => {
   }
 });
 
-// ── 4. Register New Hospital ────────────────────────────────────────────────
+// ── 4. Register New Hospital (System Admin Portal) ──────────────────────────────
 router.post('/hospitals', async (req, res) => {
-  const { name, hospitalCode, address, contactEmail, contactPhone, consultantFees } = req.body;
+  const { name, hospitalCode, address, contactEmail, contactPhone, adminName, password, consultantFees } = req.body;
   if (!name || !hospitalCode) {
     return res.status(400).json({ error: 'Hospital Name and Code are required.' });
   }
 
   try {
+    const code = hospitalCode.toUpperCase();
+    const adminEmail = (contactEmail || `admin@${code.toLowerCase()}.org`).toLowerCase();
+
+    const existingHosp = await Hospital.findOne({ hospitalCode: code });
+    if (existingHosp) {
+      return res.status(400).json({ error: 'A hospital with this facility code already exists.' });
+    }
+
+    const existingUser = await User.findOne({ email: adminEmail });
+    if (existingUser) {
+      return res.status(400).json({ error: 'An account with this administrator email already exists.' });
+    }
+
     const newHospital = await Hospital.create({
-      hospitalCode: hospitalCode.toUpperCase(),
+      hospitalCode: code,
       name,
       address: address || {},
-      contactEmail: contactEmail || `admin@${hospitalCode.toLowerCase()}.org`,
+      contactEmail: adminEmail,
       contactPhone: contactPhone || '',
       verificationStatus: 'APPROVED',
       dualVerification: { hospitalVerifiedAt: new Date(), adminVerifiedAt: new Date(), adminVerifiedBy: req.user.id },
       consultantFeeStructure: consultantFees || { generalPhysician: 50, specialist: 100, superSpecialist: 180 }
     });
 
-    // Automatically create a default Hospital Admin user
-    const adminEmail = contactEmail ? contactEmail.toLowerCase() : `admin@${hospitalCode.toLowerCase()}.org`;
-    await User.create({
+    // Create the Hospital Admin user account for login
+    const adminPass = password || 'admin123';
+    const adminUser = await User.create({
       hospitalId: newHospital._id,
-      fullName: `${name} Admin`,
+      fullName: adminName || `${name} Admin`,
       email: adminEmail,
-      passwordHash: 'admin123',
+      passwordHash: adminPass,
+      phone: contactPhone || '',
       role: 'HOSPITAL_ADMIN',
-      approvalStatus: 'APPROVED'
+      approvalStatus: 'APPROVED',
+      isActive: true
     });
 
     return res.status(201).json({
-      message: 'Hospital registered and default Admin account created (admin123).',
+      message: `Hospital registered and Admin account created successfully. Login ID: ${adminEmail}`,
       hospital: newHospital,
-      adminEmail
+      adminEmail,
+      adminPassword: adminPass
     });
   } catch (err) {
     return res.status(500).json({ error: 'Hospital registration failed.', detail: err.message });
