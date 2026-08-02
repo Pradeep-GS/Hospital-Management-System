@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: aegiscare-backend
+    runtime: node
+    region: singapore          # Choose your nearest region
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000            # Render assigns its own port; this is just a hint
+      - key: MONGODB_URI
+        sync: false             # Set manually in Render dashboard (keeps it secret)
+      - key: JWT_SECRET
+        sync: false             # Set manually in Render dashboard
+      - key: CLIENT_URL
+        sync: false             # Set to your Vercel URL after deploying frontend
