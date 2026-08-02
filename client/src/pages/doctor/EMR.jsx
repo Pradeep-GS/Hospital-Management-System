@@ -13,6 +13,12 @@ export const EMR = () => {
   const [diagnosis, setDiagnosis] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Vitals State (Editable by Doctor)
+  const [bloodPressure, setBloodPressure] = useState('120/80');
+  const [heartRate, setHeartRate] = useState(72);
+  const [temperatureCelsius, setTemperatureCelsius] = useState(36.8);
+  const [spO2Percentage, setSpO2Percentage] = useState(98);
+
   // Multi-item Prescription State
   const [prescriptionItems, setPrescriptionItems] = useState([
     { medicineName: 'Paracetamol 500mg', dosage: '500mg', frequency: '1-0-1 (After Meals)', durationDays: 5, quantityRequired: 10 }
@@ -42,6 +48,12 @@ export const EMR = () => {
     try {
       const res = await api.get(`/doctors/emr?patientId=${patientId}&appointmentId=${appointmentId}`);
       setFullEmr(res.data);
+      if (res.data.emrRecord?.vitals) {
+        setBloodPressure(res.data.emrRecord.vitals.bloodPressure || '120/80');
+        setHeartRate(res.data.emrRecord.vitals.heartRate || 72);
+        setTemperatureCelsius(res.data.emrRecord.vitals.temperatureCelsius || 36.8);
+        setSpO2Percentage(res.data.emrRecord.vitals.spO2Percentage || 98);
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'EMR Access Denied.');
     } finally {
@@ -85,6 +97,12 @@ export const EMR = () => {
         patientId: activeApt.patientId,
         diagnosis,
         doctorNotes: notes,
+        vitals: {
+          bloodPressure,
+          heartRate: Number(heartRate) || 72,
+          temperatureCelsius: Number(temperatureCelsius) || 36.8,
+          spO2Percentage: Number(spO2Percentage) || 98
+        },
         items: formattedItems
       });
 
@@ -188,27 +206,61 @@ export const EMR = () => {
           {/* Right 8 Columns: Prescriptions history & New Input Form */}
           <div className="lg:col-span-8 space-y-6">
 
-            {/* Vitals */}
+            {/* Vitals Form Entry */}
             <div className="glass-panel p-6">
-              <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-teal-400" /> Patient Vitals
-              </h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-teal-400" /> Patient Clinical Vitals (Record & Edit)
+                </h4>
+                <span className="text-[10px] text-teal-400 font-semibold bg-teal-950/60 border border-teal-800 px-2 py-0.5 rounded">
+                  Clinical Examination Mode
+                </span>
+              </div>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                  <span className="text-slate-500 block">Blood Pressure</span>
-                  <span className="font-mono font-bold text-white text-base">{fullEmr.emrRecord?.vitals?.bloodPressure || '120/80'}</span>
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
+                  <label className="text-slate-400 block text-[11px] font-medium">Blood Pressure (mmHg)</label>
+                  <input
+                    type="text"
+                    value={bloodPressure}
+                    onChange={(e) => setBloodPressure(e.target.value)}
+                    placeholder="120/80"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white font-bold text-sm focus:outline-none focus:border-teal-500"
+                  />
                 </div>
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                  <span className="text-slate-500 block">Heart Rate</span>
-                  <span className="font-mono font-bold text-teal-400 text-base">{fullEmr.emrRecord?.vitals?.heartRate || 72} bpm</span>
+
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
+                  <label className="text-slate-400 block text-[11px] font-medium">Heart Rate (bpm)</label>
+                  <input
+                    type="number"
+                    value={heartRate}
+                    onChange={(e) => setHeartRate(e.target.value)}
+                    placeholder="72"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-teal-400 font-bold text-sm focus:outline-none focus:border-teal-500"
+                  />
                 </div>
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                  <span className="text-slate-500 block">Body Temp</span>
-                  <span className="font-mono font-bold text-white text-base">{fullEmr.emrRecord?.vitals?.temperatureCelsius || 36.8} °C</span>
+
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
+                  <label className="text-slate-400 block text-[11px] font-medium">Body Temp (°C)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={temperatureCelsius}
+                    onChange={(e) => setTemperatureCelsius(e.target.value)}
+                    placeholder="36.8"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white font-bold text-sm focus:outline-none focus:border-teal-500"
+                  />
                 </div>
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                  <span className="text-slate-500 block">SpO2 Oxygen</span>
-                  <span className="font-mono font-bold text-emerald-400 text-base">{fullEmr.emrRecord?.vitals?.spO2Percentage || 98}%</span>
+
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1">
+                  <label className="text-slate-400 block text-[11px] font-medium">SpO2 Oxygen (%)</label>
+                  <input
+                    type="number"
+                    value={spO2Percentage}
+                    onChange={(e) => setSpO2Percentage(e.target.value)}
+                    placeholder="98"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-emerald-400 font-bold text-sm focus:outline-none focus:border-teal-500"
+                  />
                 </div>
               </div>
             </div>
