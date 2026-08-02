@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, Search, Edit2, KeyRound, Trash2, Eye, CheckCircle2 } from 'lucide-react';
+import { Users, UserPlus, Search, Edit2, KeyRound, Trash2, Eye, CheckCircle2, ShieldCheck, UserCheck, Lock } from 'lucide-react';
 import api from '../../services/api';
+import { toast } from 'sonner';
+import { Helmet } from 'react-helmet-async';
 
 export const StaffManagement = () => {
   const [staff, setStaff] = useState([]);
@@ -26,12 +28,11 @@ export const StaffManagement = () => {
 
   const [newPassword, setNewPassword] = useState('12345');
   const [resetMsg, setResetMsg] = useState('');
-  const [actionMsg, setActionMsg] = useState('');
 
   const fetchStaff = async () => {
     try {
       const res = await api.get('/hospitals/staff');
-      setStaff(res.data.staff);
+      setStaff(res.data.staff || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -49,232 +50,213 @@ export const StaffManagement = () => {
     setEmail('');
     setPhone('');
     setRole('DOCTOR');
-    setDepartment('General Practice');
-    setDesignation('Resident Doctor');
+    setDepartment('General Medicine');
+    setDesignation('Senior Resident');
     setGender('MALE');
-    setJoiningDate(new Date().toISOString().split('T')[0]);
     setShowAddModal(true);
   };
 
-  const handleOpenEdit = (member) => {
-    setSelectedStaff(member);
-    setFullName(member.fullName);
-    setEmail(member.email);
-    setPhone(member.phone || '');
-    setRole(member.role);
-    setDepartment(member.department || '');
-    setDesignation(member.designation || '');
-    setGender(member.gender || 'MALE');
-    setJoiningDate(member.joiningDate ? new Date(member.joiningDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+  const handleOpenEdit = (emp) => {
+    setSelectedStaff(emp);
+    setFullName(emp.fullName || '');
+    setEmail(emp.email || '');
+    setPhone(emp.phone || '');
+    setRole(emp.role || 'DOCTOR');
+    setDepartment(emp.department || '');
+    setDesignation(emp.designation || '');
+    setGender(emp.gender || 'MALE');
     setShowAddModal(true);
   };
 
-  const handleSubmitEmployee = async (e) => {
+  const handleSubmitStaff = async (e) => {
     e.preventDefault();
-    setActionMsg('');
-
     try {
       if (selectedStaff) {
-        // Edit existing staff
         await api.put(`/hospitals/staff/${selectedStaff._id}`, {
-          fullName, phone, department, designation
+          fullName, email, phone, role, department, designation, gender
         });
-        setActionMsg('✅ Employee profile updated successfully.');
+        toast.success(`Employee ${fullName} updated successfully!`);
       } else {
-        // Add new staff
-        await api.post('/hospitals/staff/add', {
+        const res = await api.post('/hospitals/staff/add', {
           fullName, email, phone, role, department, designation, gender, joiningDate
         });
-        setActionMsg('🎉 New Employee created! Default password assigned: 12345.');
+        toast.success(`Employee ${fullName} added! Emp ID: ${res.data.employeeId}`);
       }
-
-      setTimeout(() => {
-        setShowAddModal(false);
-        setActionMsg('');
-        fetchStaff();
-      }, 1500);
+      setShowAddModal(false);
+      fetchStaff();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to save employee.');
+      alert(err.response?.data?.error || 'Staff creation failed.');
+      toast.error(err.response?.data?.error || 'Staff creation failed.');
+    }
+  };
+
+  const handleToggleStatus = async (emp) => {
+    try {
+      const res = await api.patch(`/hospitals/staff/${emp._id}/status`);
+      toast.success(res.data.message || 'Status updated');
+      fetchStaff();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Status update failed.');
     }
   };
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (!selectedStaff || !newPassword) return;
-
+    if (!selectedStaff) return;
     try {
-      await api.post(`/hospitals/staff/${selectedStaff._id}/reset-password`, { newPassword });
-      setResetMsg(`✅ Password reset to "${newPassword}". User must change it on next login.`);
+      await api.post(`/hospitals/staff/${selectedStaff._id}/reset-password`, {
+        newPassword
+      });
+      setResetMsg(`✅ Password reset successfully to "${newPassword}". Mandatory change on next login.`);
+      toast.success(`Password reset to "${newPassword}"!`);
       setTimeout(() => {
         setShowResetModal(false);
         setResetMsg('');
-      }, 2000);
+      }, 1500);
     } catch (err) {
       alert(err.response?.data?.error || 'Password reset failed.');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this employee record?')) return;
-    try {
-      await api.delete(`/hospitals/staff/${id}`);
-      fetchStaff();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Deletion failed.');
-    }
-  };
-
-  const toggleStatus = async (id, currentStatus) => {
-    try {
-      await api.put(`/hospitals/staff/${id}`, { isActive: !currentStatus });
-      fetchStaff();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Status change failed.');
-    }
-  };
-
-  const filteredStaff = staff.filter((s) => {
-    const matchesSearch = s.fullName.toLowerCase().includes(search.toLowerCase()) || (s.employeeId && s.employeeId.toLowerCase().includes(search.toLowerCase()));
-    const matchesRole = filterRole ? s.role === filterRole : true;
+  const filteredStaff = staff.filter((emp) => {
+    const matchesSearch =
+      emp.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      emp.employeeId?.toLowerCase().includes(search.toLowerCase()) ||
+      emp.email?.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = filterRole ? emp.role === filterRole : true;
     return matchesSearch && matchesRole;
   });
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Loading Staff Directory...</div>;
+  if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading Hospital Staff Directory...</div>;
 
   return (
-    <div className="space-y-6 text-xs font-['Plus_Jakarta_Sans',sans-serif]">
-      
-      {/* Header Bar */}
-      <div className="glass-panel p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 font-['Inter',sans-serif]">
+      <Helmet>
+        <title>Staff Management | AegisCare ERP</title>
+      </Helmet>
+
+      {/* Header */}
+      <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-400" /> Hospital Staff Management Portal
-          </h3>
-          <p className="text-xs text-slate-400">Register, manage, and audit employee accounts belonging strictly to your facility</p>
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
+            <Users className="w-5 h-5 text-blue-600" /> Hospital Staff Management Module
+          </h2>
+          <p className="text-xs text-slate-500">Manage internal hospital employees, roles, status, credentials & password resets</p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow flex items-center justify-center gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-xs transition-all flex items-center justify-center gap-2"
         >
-          <UserPlus className="w-4 h-4" /> Add Employee
+          <UserPlus className="w-4 h-4" /> Add Hospital Employee
         </button>
       </div>
 
-      {/* Search & Filter Controls */}
-      <div className="glass-panel p-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+      {/* Search & Role Filter Bar */}
+      <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
-            placeholder="Search Name or Employee ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-white focus:outline-none"
+            placeholder="Search by Employee ID, Name, or Email..."
+            className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-slate-400 font-semibold">Filter Role:</label>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <label className="text-slate-600 font-semibold text-xs whitespace-nowrap">Filter Role:</label>
           <select
             value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}
-            className="bg-slate-950 border border-slate-800 rounded-lg p-2 text-white focus:outline-none"
+            className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium"
           >
-            <option value="">All Employee Roles</option>
-            <option value="DOCTOR">Doctors</option>
-            <option value="NURSE">Nurses</option>
-            <option value="RECEPTIONIST">Receptionists</option>
-            <option value="PHARMACY">Pharmacists</option>
-            <option value="LAB_TECH">Lab Technicians</option>
-            <option value="STAFF">Cleaners / Drivers / Security / Staff</option>
+            <option value="">All Roles</option>
+            <option value="DOCTOR">Doctor</option>
+            <option value="NURSE">Nurse</option>
+            <option value="RECEPTIONIST">Receptionist</option>
+            <option value="PHARMACY">Pharmacist</option>
+            <option value="LAB_TECHNICIAN">Lab Tech</option>
+            <option value="CLEANER">Cleaner</option>
+            <option value="SECURITY">Security</option>
+            <option value="DRIVER">Driver</option>
+            <option value="OTHER">Other Employee</option>
           </select>
         </div>
       </div>
 
       {/* Staff Table */}
-      <div className="glass-panel p-6">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-400">
-                <th className="pb-3">Employee ID</th>
-                <th className="pb-3">Full Name</th>
-                <th className="pb-3">Role</th>
-                <th className="pb-3">Department</th>
-                <th className="pb-3">Joining Date</th>
-                <th className="pb-3">Status</th>
-                <th className="pb-3 text-right">Actions</th>
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider font-semibold">
+              <tr>
+                <th className="p-4">Emp ID</th>
+                <th className="p-4">Full Name</th>
+                <th className="p-4">Role</th>
+                <th className="p-4">Department</th>
+                <th className="p-4">Email / Phone</th>
+                <th className="p-4">Status</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {filteredStaff.map((member) => (
-                <tr key={member._id} className="border-b border-slate-900/60 hover:bg-slate-900/20 text-slate-300">
-                  <td className="py-4 font-mono font-bold text-teal-400">{member.employeeId || 'EMP-STAFF'}</td>
-                  <td className="py-4 font-bold text-white">{member.fullName}</td>
-                  <td className="py-4">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-extrabold text-[10px]">
-                      {member.role}
+            <tbody className="divide-y divide-slate-100">
+              {filteredStaff.map((emp) => (
+                <tr key={emp._id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="p-4 font-mono font-bold text-blue-600">{emp.employeeId || 'EMP-000'}</td>
+                  <td className="p-4 font-bold text-slate-900">{emp.fullName}</td>
+                  <td className="p-4">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      {emp.role}
                     </span>
                   </td>
-                  <td className="py-4 text-slate-400">{member.department || 'General'}</td>
-                  <td className="py-4 font-mono text-slate-400">
-                    {member.joiningDate ? new Date(member.joiningDate).toLocaleDateString() : 'N/A'}
+                  <td className="p-4 text-slate-600">{emp.department || 'General'}</td>
+                  <td className="p-4 text-slate-600 font-mono text-[11px]">{emp.email}</td>
+                  <td className="p-4">
+                    <button
+                      onClick={() => handleToggleStatus(emp)}
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase transition-all ${
+                        emp.isActive
+                          ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200'
+                          : 'bg-rose-100 text-rose-700 border border-rose-200 hover:bg-rose-200'
+                      }`}
+                    >
+                      {emp.isActive ? 'Active' : 'Deactivated'}
+                    </button>
                   </td>
-                  <td className="py-4">
-                    <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
-                      member.isActive ? 'bg-emerald-950 text-emerald-300 border border-emerald-900' : 'bg-rose-950 text-rose-300 border border-rose-900'
-                    }`}>
-                      {member.isActive ? 'ACTIVE' : 'DEACTIVATED'}
-                    </span>
-                  </td>
-                  <td className="py-4 text-right space-x-1.5 whitespace-nowrap">
-                    <button
-                      onClick={() => {
-                        setSelectedStaff(member);
-                        setShowViewModal(true);
-                      }}
-                      className="p-1.5 bg-slate-850 hover:bg-slate-800 text-slate-300 rounded"
-                      title="View Details"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleOpenEdit(member)}
-                      className="p-1.5 bg-slate-850 hover:bg-slate-800 text-blue-400 rounded"
-                      title="Edit Employee"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => toggleStatus(member._id, member.isActive)}
-                      className="px-2 py-1 bg-slate-850 hover:bg-slate-800 text-slate-300 rounded font-semibold text-[10px]"
-                    >
-                      {member.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedStaff(member);
-                        setNewPassword('12345');
-                        setShowResetModal(true);
-                      }}
-                      className="px-2 py-1 bg-slate-850 hover:bg-slate-800 text-teal-400 rounded font-semibold text-[10px] inline-flex items-center gap-1"
-                    >
-                      <KeyRound className="w-3 h-3" /> Reset
-                    </button>
-                    <button
-                      onClick={() => handleDelete(member._id)}
-                      className="p-1.5 bg-slate-850 hover:bg-slate-800 text-rose-400 rounded"
-                      title="Delete Record"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                  <td className="p-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => { setSelectedStaff(emp); setShowViewModal(true); }}
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        title="View Profile"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleOpenEdit(emp)}
+                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100"
+                        title="Edit Details"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => { setSelectedStaff(emp); setShowResetModal(true); }}
+                        className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100"
+                        title="Reset Password"
+                      >
+                        <KeyRound className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {filteredStaff.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="text-center py-8 text-slate-500">No employee records match the selected filter.</td>
+                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                    No employee records match the search filter.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -282,131 +264,149 @@ export const StaffManagement = () => {
         </div>
       </div>
 
-      {/* Add / Edit Employee Modal */}
+      {/* Add / Edit Staff Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-lg w-full shadow-2xl space-y-4">
-            <h3 className="text-base font-bold text-white">
-              {selectedStaff ? `Edit Employee (${selectedStaff.employeeId || 'ID'})` : 'Register New Facility Employee'}
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl max-w-lg w-full shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-slate-900 font-['Poppins',sans-serif]">
+              {selectedStaff ? `Edit Employee ${selectedStaff.employeeId}` : 'Add New Hospital Employee'}
             </h3>
-
-            {actionMsg && (
-              <div className="bg-emerald-950 border border-emerald-500 text-emerald-300 p-3 rounded-xl flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>{actionMsg}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmitEmployee} className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-slate-300 mb-1">Full Name</label>
-                  <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white" required placeholder="Dr. Alice Smith" />
-                </div>
-                <div>
-                  <label className="block text-slate-300 mb-1">Email (Login ID)</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!selectedStaff} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white disabled:opacity-50" required placeholder="alice@hospital.org" />
-                </div>
+            <form onSubmit={handleSubmitStaff} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                  required
+                  placeholder="Dr. Gregory House"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 mb-1">Role</label>
-                  <select value={role} onChange={(e) => setRole(e.target.value)} disabled={!!selectedStaff} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white disabled:opacity-50">
+                  <label className="block text-slate-700 font-semibold mb-1">Email Address (Login ID)</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    required
+                    placeholder="house@metrohospital.org"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Mobile Phone</label>
+                  <input
+                    type="text"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    required
+                    placeholder="+1-555-0101"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Role</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                  >
                     <option value="DOCTOR">Doctor</option>
                     <option value="NURSE">Nurse</option>
                     <option value="RECEPTIONIST">Receptionist</option>
                     <option value="PHARMACY">Pharmacist</option>
-                    <option value="LAB_TECH">Lab Technician</option>
-                    <option value="STAFF">Cleaner / Security / Driver / Staff</option>
+                    <option value="LAB_TECHNICIAN">Lab Tech</option>
+                    <option value="CLEANER">Cleaner</option>
+                    <option value="SECURITY">Security</option>
+                    <option value="DRIVER">Driver</option>
+                    <option value="OTHER">Other Employee</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-300 mb-1">Department</label>
-                  <input type="text" value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Cardiology / Pharmacy / Ward" />
+                  <label className="block text-slate-700 font-semibold mb-1">Department</label>
+                  <input
+                    type="text"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    placeholder="Internal Medicine"
+                  />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 mb-1">Phone Number</label>
-                  <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="+1-555-0100" />
+                  <label className="block text-slate-700 font-semibold mb-1">Designation</label>
+                  <input
+                    type="text"
+                    value={designation}
+                    onChange={(e) => setDesignation(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                    placeholder="Chief Diagnostician"
+                  />
                 </div>
                 <div>
-                  <label className="block text-slate-300 mb-1">Gender</label>
-                  <select value={gender} onChange={(e) => setGender(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
+                  <label className="block text-slate-700 font-semibold mb-1">Gender</label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900"
+                  >
                     <option value="MALE">Male</option>
                     <option value="FEMALE">Female</option>
                     <option value="OTHER">Other</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-slate-300 mb-1">Date of Joining</label>
-                  <input type="date" value={joiningDate} onChange={(e) => setJoiningDate(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono" />
-                </div>
               </div>
 
-              {!selectedStaff && (
-                <div className="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-[11px] text-amber-200">
-                  <span className="font-bold block">Security Note:</span>
-                  Default login password set to <strong className="font-mono text-amber-300">12345</strong>. The employee will be prompted to change password on first login.
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowAddModal(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">Cancel</button>
-                <button type="submit" className="px-4 py-1.5 rounded bg-blue-600 text-white font-bold">{selectedStaff ? 'Save Changes' : 'Register Employee'}</button>
+              <div className="flex justify-end gap-2 pt-3">
+                <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-medium">Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold">
+                  {selectedStaff ? 'Save Changes' : 'Create Employee Record'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* View Employee Profile Modal */}
-      {showViewModal && selectedStaff && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="text-base font-bold text-white border-b border-slate-800 pb-2">Employee Detail View</h3>
-            <div className="space-y-2 text-xs">
-              <div><span className="text-slate-500 block">Full Name</span><span className="text-white font-bold">{selectedStaff.fullName}</span></div>
-              <div><span className="text-slate-500 block">Employee ID</span><span className="text-teal-400 font-mono font-bold">{selectedStaff.employeeId || 'N/A'}</span></div>
-              <div><span className="text-slate-500 block">Role & Department</span><span className="text-slate-300">{selectedStaff.role} ({selectedStaff.department || 'General'})</span></div>
-              <div><span className="text-slate-500 block">Email Address</span><span className="text-slate-300 font-mono">{selectedStaff.email}</span></div>
-              <div><span className="text-slate-500 block">Phone</span><span className="text-slate-300 font-mono">{selectedStaff.phone || 'N/A'}</span></div>
-            </div>
-            <div className="flex justify-end pt-2">
-              <button onClick={() => setShowViewModal(false)} className="px-4 py-1.5 bg-slate-800 text-slate-300 rounded font-bold">Close View</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Reset Password Modal */}
       {showResetModal && selectedStaff && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="text-base font-bold text-white">Reset Credentials for {selectedStaff.fullName}</h3>
-            
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-slate-900 font-['Poppins',sans-serif]">
+              Reset Password for {selectedStaff.fullName}
+            </h3>
+
             {resetMsg && (
-              <div className="bg-emerald-950 border border-emerald-500 text-emerald-300 p-2.5 rounded-xl">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold">
                 {resetMsg}
               </div>
             )}
 
-            <form onSubmit={handleResetPassword} className="space-y-3">
+            <form onSubmit={handleResetPassword} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-300 mb-1">Set Password (Default: 12345)</label>
+                <label className="block text-slate-700 font-semibold mb-1">New Password</label>
                 <input
                   type="text"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono"
                   required
                 />
               </div>
+
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowResetModal(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">Cancel</button>
-                <button type="submit" className="px-4 py-1.5 rounded bg-blue-600 text-white font-bold">Set & Force Reset</button>
+                <button type="button" onClick={() => setShowResetModal(false)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700">Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold">
+                  Confirm Password Reset
+                </button>
               </div>
             </form>
           </div>

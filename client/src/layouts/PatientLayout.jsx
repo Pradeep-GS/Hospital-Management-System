@@ -5,10 +5,10 @@ import Header from '../components/common/Header';
 
 export const PatientLayout = () => {
   return (
-    <div className="flex min-h-screen bg-slate-950 font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-['Inter',sans-serif]">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header title="Universal Patient Portal" />
+        <Header title="Patient Health Portal" />
         <main className="flex-1 p-6 overflow-y-auto">
           <Outlet />
         </main>

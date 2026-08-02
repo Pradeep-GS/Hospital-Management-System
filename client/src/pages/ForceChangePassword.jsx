@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { KeyRound, CheckCircle2, AlertTriangle, ShieldAlert } from 'lucide-react';
 import api from '../services/api';
+import { toast } from 'sonner';
+import { Helmet } from 'react-helmet-async';
 
 export const ForceChangePassword = () => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -21,7 +23,8 @@ export const ForceChangePassword = () => {
     setSuccess('');
 
     if (newPassword !== confirmPassword) {
-      return setErrorMsg('New password and confirm password do not match.');
+      setErrorMsg('New password and confirm password do not match.');
+      return toast.error('New password and confirm password do not match.');
     }
 
     setLoading(true);
@@ -32,39 +35,47 @@ export const ForceChangePassword = () => {
         confirmPassword
       });
       setSuccess('✅ Password changed successfully! Redirecting you to login...');
+      toast.success('Password updated! Redirecting to login...');
       setTimeout(async () => {
         await logout();
         navigate('/login');
-      }, 2000);
+      }, 1500);
     } catch (err) {
       setErrorMsg(err.response?.data?.error || 'Password update failed.');
+      toast.error(err.response?.data?.error || 'Password update failed.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-['Plus_Jakarta_Sans',sans-serif]">
-      <div className="max-w-md w-full glass-panel-accent p-8 space-y-6 relative z-10 text-xs">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-['Inter',sans-serif]">
+      <Helmet>
+        <title>Security Password Update | AegisCare ERP</title>
+      </Helmet>
+
+      <div className="max-w-md w-full bg-white border border-slate-200 p-8 rounded-3xl shadow-xl space-y-6 text-xs">
         
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-xs">
             <ShieldAlert className="w-7 h-7" />
           </div>
-          <h1 className="text-xl font-extrabold text-white tracking-tight">Security Credentials Verification</h1>
-          <p className="text-slate-400">You must change your default password before proceeding</p>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight font-['Poppins',sans-serif]">
+            Security Credentials Update
+          </h1>
+          <p className="text-xs text-slate-500">First-time login detected. Please update your default password.</p>
         </div>
 
         {errorMsg && (
-          <div className="bg-rose-950 border border-rose-600 text-rose-200 p-3 rounded-xl flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-rose-400" />
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3.5 rounded-xl font-medium flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {success && (
-          <div className="bg-emerald-950 border border-emerald-500 text-emerald-300 p-3 rounded-xl flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-xl font-bold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{success}</span>
           </div>
         )}
@@ -72,34 +83,34 @@ export const ForceChangePassword = () => {
         {!success && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-slate-300 mb-1">Current Default Password</label>
+              <label className="block text-slate-700 font-semibold mb-1">Current Default Password (12345)</label>
               <input
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 mb-1">Choose New Secure Password</label>
+              <label className="block text-slate-700 font-semibold mb-1">Choose New Secure Password</label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 mb-1">Confirm New Password</label>
+              <label className="block text-slate-700 font-semibold mb-1">Confirm New Password</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
                 required
               />
             </div>
@@ -107,9 +118,9 @@ export const ForceChangePassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 text-slate-950 font-extrabold py-3 rounded-xl text-xs transition-all shadow-lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-xs transition-all shadow-md"
             >
-              {loading ? 'Updating Password...' : 'Save & Login with New Password'}
+              {loading ? 'Updating Password...' : 'Save & Sign In with New Password'}
             </button>
           </form>
         )}

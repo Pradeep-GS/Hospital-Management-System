@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Plus } from 'lucide-react';
 import api from '../../services/api';
+import { toast } from 'sonner';
+import { Helmet } from 'react-helmet-async';
 
 export const Inventory = () => {
   const [inventory, setInventory] = useState([]);
@@ -25,7 +27,7 @@ export const Inventory = () => {
   const fetchInventory = async () => {
     try {
       const res = await api.get('/pharmacy/inventory');
-      setInventory(res.data.inventory);
+      setInventory(res.data.inventory || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -46,6 +48,7 @@ export const Inventory = () => {
           medicineId: selectedMed._id,
           addQuantity: addQty
         });
+        toast.success(`Restocked ${selectedMed.name} (+${addQty} units)`);
       } else {
         await api.post('/pharmacy/inventory/add', {
           name: newName,
@@ -58,7 +61,7 @@ export const Inventory = () => {
           expiryDate,
           category
         });
-        // Clear fields
+        toast.success(`Medicine ${newName} added to inventory!`);
         setNewName('');
         setGenericName('');
         setBatchNumber('');
@@ -67,51 +70,59 @@ export const Inventory = () => {
       fetchInventory();
     } catch (err) {
       alert(err.response?.data?.error || 'Action failed.');
+      toast.error(err.response?.data?.error || 'Action failed.');
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Loading Stock Inventory...</div>;
+  if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading Stock Inventory...</div>;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="glass-panel p-6 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <Package className="w-5 h-5 text-cyan-400" /> Medicine Stock Inventory
-        </h3>
+    <div className="space-y-6 max-w-4xl mx-auto font-['Inter',sans-serif]">
+      <Helmet>
+        <title>Medicine Inventory | AegisCare ERP</title>
+      </Helmet>
+
+      <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
+            <Package className="w-5 h-5 text-blue-600" /> Medicine Stock Inventory Tracker
+          </h3>
+          <p className="text-xs text-slate-500">Track batch numbers, expiration dates, unit prices, and automated stock reorder levels</p>
+        </div>
         <button
           onClick={() => {
             setSelectedMed(null);
             setShowModal(true);
           }}
-          className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-xs"
         >
-          <Plus className="w-4 h-4" /> Add Medicine
+          <Plus className="w-4 h-4" /> Add New Medicine
         </button>
       </div>
 
-      <div className="glass-panel p-6">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div className="space-y-3">
           {inventory.map((item) => {
             const isLow = item.stockQuantity <= item.reorderLevel;
             return (
-              <div key={item._id} className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+              <div key={item._id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between text-xs hover:border-blue-300 transition-colors">
                 <div>
-                  <h4 className="font-bold text-white text-sm">{item.name}</h4>
-                  <p className="text-slate-500">Batch: {item.batchNumber} | Expiry: {new Date(item.expiryDate).toLocaleDateString()}</p>
+                  <h4 className="font-bold text-slate-900 text-sm">{item.name}</h4>
+                  <p className="text-slate-500 mt-0.5 font-mono text-[11px]">Batch: {item.batchNumber} | Expiry: {new Date(item.expiryDate).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right flex items-center gap-4">
                   <div>
-                    <span className={`font-mono font-bold text-sm block ${isLow ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    <span className={`font-mono font-bold text-sm block ${isLow ? 'text-rose-600' : 'text-emerald-600'}`}>
                       {item.stockQuantity} units
                     </span>
-                    <span className="text-slate-500 font-mono">${item.unitPrice}/unit</span>
+                    <span className="text-slate-500 font-mono text-[11px]">${item.unitPrice}/unit</span>
                   </div>
                   <button
                     onClick={() => {
                       setSelectedMed(item);
                       setShowModal(true);
                     }}
-                    className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1 rounded font-bold"
+                    className="bg-slate-900 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold text-xs transition-colors"
                   >
                     Restock
                   </button>
@@ -123,20 +134,20 @@ export const Inventory = () => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-md w-full shadow-2xl">
-            <h3 className="text-base font-bold text-white mb-3">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-slate-900 font-['Poppins',sans-serif]">
               {selectedMed ? `Restock ${selectedMed.name}` : 'Add New Medicine Asset'}
             </h3>
             <form onSubmit={handleUpdateStock} className="space-y-3 text-xs">
               {selectedMed ? (
                 <div>
-                  <label className="block text-slate-300 mb-1">Quantity to add</label>
+                  <label className="block text-slate-700 font-semibold mb-1">Quantity to Add</label>
                   <input
                     type="number"
                     value={addQty}
                     onChange={(e) => setAddQty(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono"
                     required
                   />
                 </div>
@@ -144,42 +155,42 @@ export const Inventory = () => {
                 <>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-slate-300 mb-1">Name</label>
-                      <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white" required placeholder="Aspirin 81mg" />
+                      <label className="block text-slate-700 font-semibold mb-1">Medicine Name</label>
+                      <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900" required placeholder="Aspirin 81mg" />
                     </div>
                     <div>
-                      <label className="block text-slate-300 mb-1">Generic Name</label>
-                      <input type="text" value={genericName} onChange={(e) => setGenericName(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white" placeholder="Acetylsalicylic Acid" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-slate-300 mb-1">Batch</label>
-                      <input type="text" value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" placeholder="B-990" />
-                    </div>
-                    <div>
-                      <label className="block text-slate-300 mb-1">Qty</label>
-                      <input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" required />
-                    </div>
-                    <div>
-                      <label className="block text-slate-300 mb-1">Reorder Level</label>
-                      <input type="number" value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" required />
+                      <label className="block text-slate-700 font-semibold mb-1">Generic Name</label>
+                      <input type="text" value={genericName} onChange={(e) => setGenericName(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900" placeholder="Acetylsalicylic Acid" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-slate-300 mb-1">Price ($)</label>
-                      <input type="number" step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" required />
+                      <label className="block text-slate-700 font-semibold mb-1">Batch #</label>
+                      <input type="text" value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono" placeholder="B-990" />
                     </div>
                     <div>
-                      <label className="block text-slate-300 mb-1">GST (%)</label>
-                      <input type="number" value={gstRatePercentage} onChange={(e) => setGstRatePercentage(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" required />
+                      <label className="block text-slate-700 font-semibold mb-1">Stock Qty</label>
+                      <input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono" required />
                     </div>
                     <div>
-                      <label className="block text-slate-300 mb-1">Category</label>
-                      <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white">
+                      <label className="block text-slate-700 font-semibold mb-1">Reorder Level</label>
+                      <input type="number" value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono" required />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-semibold mb-1">Price ($)</label>
+                      <input type="number" step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono" required />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-semibold mb-1">GST (%)</label>
+                      <input type="number" value={gstRatePercentage} onChange={(e) => setGstRatePercentage(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono" required />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-semibold mb-1">Category</label>
+                      <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900">
                         <option value="TABLET">TABLET</option>
                         <option value="CAPSULE">CAPSULE</option>
                         <option value="SYRUP">SYRUP</option>
@@ -190,14 +201,14 @@ export const Inventory = () => {
                   </div>
 
                   <div>
-                    <label className="block text-slate-300 mb-1">Expiry Date</label>
-                    <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" required />
+                    <label className="block text-slate-700 font-semibold mb-1">Expiry Date</label>
+                    <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono" required />
                   </div>
                 </>
               )}
-              <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">Cancel</button>
-                <button type="submit" className="px-3 py-1.5 rounded bg-cyan-600 text-white font-bold">
+              <div className="flex justify-end gap-2 pt-3">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-medium">Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold">
                   {selectedMed ? 'Add Stock' : 'Create Asset'}
                 </button>
               </div>

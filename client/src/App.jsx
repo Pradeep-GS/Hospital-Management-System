@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'sonner';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
@@ -59,8 +61,10 @@ import PharmacyInventory from './pages/pharmacy/Inventory';
 
 export function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <HelmetProvider>
+      <AuthProvider>
+        <Toaster position="top-right" richColors closeButton expand={false} />
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
@@ -148,6 +152,7 @@ export function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+  </HelmetProvider>
   );
 }
 

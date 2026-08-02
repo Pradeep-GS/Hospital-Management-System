@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { UserPlus, QrCode, CheckCircle2 } from 'lucide-react';
+import { UserPlus, QrCode, CheckCircle2, ShieldCheck, User } from 'lucide-react';
 import api from '../../services/api';
+import { toast } from 'sonner';
+import { Helmet } from 'react-helmet-async';
 
 export const RegisterPatient = () => {
   const [fullName, setFullName] = useState('');
@@ -33,6 +35,7 @@ export const RegisterPatient = () => {
         emergencyContact
       });
       setResult(res.data.patient);
+      toast.success(`Patient ${res.data.patient.fullName} registered! UPID generated.`);
       setFullName('');
       setUsername('');
       setEmail('');
@@ -42,36 +45,41 @@ export const RegisterPatient = () => {
       setEmergencyContact('');
     } catch (err) {
       alert(err.response?.data?.error || 'Patient registration failed.');
+      toast.error(err.response?.data?.error || 'Patient registration failed.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto text-xs font-['Plus_Jakarta_Sans',sans-serif]">
-      <div className="glass-panel p-6 space-y-4">
-        <div className="border-b border-slate-800 pb-3">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-amber-400" /> Facility Patient Registration Portal
+    <div className="space-y-6 max-w-2xl mx-auto font-['Inter',sans-serif]">
+      <Helmet>
+        <title>Register Patient | AegisCare ERP</title>
+      </Helmet>
+
+      <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm space-y-6">
+        <div className="border-b border-slate-100 pb-4">
+          <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
+            <UserPlus className="w-5 h-5 text-blue-600" /> Patient Digital Health Profile Registration
           </h3>
-          <p className="text-slate-400">Register new patient accounts, assign default password (12345), and generate QR pass</p>
+          <p className="text-xs text-slate-500 mt-1">Register new patient accounts, assign default credentials (12345), and generate QR health passport</p>
         </div>
 
-        <form onSubmit={handleRegister} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-300 mb-1 font-semibold">Patient Full Name</label>
+              <label className="block text-slate-700 mb-1 font-semibold">Patient Full Name</label>
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Jane Doe"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
                 required
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1 font-semibold">Username / Email ID (Login ID)</label>
+              <label className="block text-slate-700 mb-1 font-semibold">Username / Email ID (Login ID)</label>
               <input
                 type="email"
                 value={username}
@@ -80,7 +88,7 @@ export const RegisterPatient = () => {
                   setEmail(e.target.value);
                 }}
                 placeholder="jane.doe@gmail.com"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
                 required
               />
             </div>
@@ -88,31 +96,31 @@ export const RegisterPatient = () => {
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-slate-300 mb-1 font-semibold">Mobile Number</label>
+              <label className="block text-slate-700 mb-1 font-semibold">Mobile Number</label>
               <input
                 type="text"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+1-555-0199"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
                 required
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1 font-semibold">Date of Birth</label>
+              <label className="block text-slate-700 mb-1 font-semibold">Date of Birth</label>
               <input
                 type="date"
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white font-mono"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-mono focus:outline-none focus:border-blue-600"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1 font-semibold">Gender</label>
+              <label className="block text-slate-700 mb-1 font-semibold">Gender</label>
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -123,11 +131,11 @@ export const RegisterPatient = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-300 mb-1 font-semibold">Blood Group</label>
+              <label className="block text-slate-700 mb-1 font-semibold">Blood Group</label>
               <select
                 value={bloodGroup}
                 onChange={(e) => setBloodGroup(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
               >
                 <option value="O+">O+</option>
                 <option value="O-">O-</option>
@@ -140,54 +148,54 @@ export const RegisterPatient = () => {
               </select>
             </div>
             <div>
-              <label className="block text-slate-300 mb-1 font-semibold">Emergency Contact Phone</label>
+              <label className="block text-slate-700 mb-1 font-semibold">Emergency Contact Phone</label>
               <input
                 type="text"
                 value={emergencyContact}
                 onChange={(e) => setEmergencyContact(e.target.value)}
                 placeholder="+1-555-9110"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-300 mb-1 font-semibold">Residential Address</label>
+            <label className="block text-slate-700 mb-1 font-semibold">Residential Address</label>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="742 Evergreen Terrace, Springfield"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
             />
           </div>
 
-          <div className="p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-amber-200">
+          <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-900">
             <span className="font-bold block">Auto Credentials System:</span>
-            Default Login Password will be set to <strong className="font-mono text-amber-300">12345</strong>. The patient will be forced to update password on first login.
+            Default Login Password will be set to <strong className="font-mono text-blue-700">12345</strong>. The patient will be forced to update password on first login.
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg transition-all"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition-all text-xs"
           >
             {loading ? 'Processing Registration...' : 'Register Patient & Generate Universal QR Code'}
           </button>
         </form>
 
         {result && (
-          <div className="bg-slate-950 p-5 rounded-2xl border border-amber-500/50 space-y-3 mt-4">
-            <div className="flex items-center gap-2 text-amber-400 font-bold uppercase">
-              <CheckCircle2 className="w-5 h-5" /> Patient Registered & Universal QR Code Generated
+          <div className="bg-slate-50 p-6 rounded-2xl border border-blue-200 space-y-4 mt-4 shadow-xs">
+            <div className="flex items-center gap-2 text-blue-600 font-bold uppercase text-xs">
+              <CheckCircle2 className="w-5 h-5" /> Patient Registered & Universal QR Passport Active
             </div>
-            <div className="grid grid-cols-2 gap-2 text-slate-300">
-              <div><span className="text-slate-500 block">Patient Name</span><span className="font-bold text-white">{result.fullName}</span></div>
-              <div><span className="text-slate-500 block">Patient ID (UPID)</span><span className="font-mono font-bold text-teal-400">{result.universalPatientId}</span></div>
-              <div><span className="text-slate-500 block">Login Username</span><span className="font-mono text-slate-300">{result.email}</span></div>
-              <div><span className="text-slate-500 block">Default Password</span><span className="font-mono text-amber-300 font-bold">12345</span></div>
+            <div className="grid grid-cols-2 gap-3 text-slate-700 text-xs">
+              <div><span className="text-slate-400 block text-[11px]">Patient Name</span><span className="font-bold text-slate-900">{result.fullName}</span></div>
+              <div><span className="text-slate-400 block text-[11px]">Patient ID (UPID)</span><span className="font-mono font-bold text-blue-600">{result.universalPatientId}</span></div>
+              <div><span className="text-slate-400 block text-[11px]">Login Username</span><span className="font-mono text-slate-800">{result.email}</span></div>
+              <div><span className="text-slate-400 block text-[11px]">Default Password</span><span className="font-mono text-blue-600 font-bold">12345</span></div>
             </div>
-            <div className="bg-slate-900 p-3 rounded-xl font-mono text-[10px] text-slate-300 border border-slate-800 break-all">
+            <div className="bg-white p-3 rounded-xl font-mono text-[11px] text-slate-700 border border-slate-200 break-all">
               QR Tag Payload: {result.qrCodePayload}
             </div>
           </div>

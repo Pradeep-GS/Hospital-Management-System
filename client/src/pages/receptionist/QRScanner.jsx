@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { QrCode, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { QrCode, CheckCircle2, AlertTriangle, Camera, Check } from 'lucide-react';
 import api from '../../services/api';
+import { toast } from 'sonner';
+import { Helmet } from 'react-helmet-async';
 
 export const QRScanner = () => {
   const [qrInput, setQrInput] = useState('UPID-8849-2026|JOHNATHAN_DOE|UNIVERSAL_HOSPITAL_KEY');
@@ -10,7 +12,6 @@ export const QRScanner = () => {
   const [msg, setMsg] = useState('');
   const [isScanning, setIsScanning] = useState(false);
 
-  // Load active approved doctors for logged-in hospital facility
   React.useEffect(() => {
     api.get('/reception/doctors')
       .then((res) => {
@@ -28,8 +29,10 @@ export const QRScanner = () => {
       const res = await api.post('/reception/scan-qr', { qrPayload: qrInput });
       setScannedData(res.data);
       setMsg('');
+      toast.success('Patient UPID scanned & health passport retrieved!');
     } catch (err) {
       alert(err.response?.data?.error || 'Scan failed.');
+      toast.error(err.response?.data?.error || 'Scan failed.');
     }
   };
 
@@ -37,9 +40,11 @@ export const QRScanner = () => {
     try {
       await api.post('/reception/check-in', { appointmentId });
       setMsg(`✅ Checked in appointment. Status set to CHECKED_IN.`);
+      toast.success('Patient checked in for appointment!');
       handleScan();
     } catch (err) {
       alert(err.response?.data?.error || 'Check-in failed.');
+      toast.error(err.response?.data?.error || 'Check-in failed.');
     }
   };
 
@@ -51,16 +56,17 @@ export const QRScanner = () => {
         doctorId: selectedDoctor
       });
       setMsg('✅ Walk-in appointment created and checked in successfully!');
+      toast.success('Walk-in appointment created & checked in!');
       handleScan();
     } catch (err) {
       alert(err.response?.data?.error || 'Walk-in check-in failed.');
+      toast.error(err.response?.data?.error || 'Walk-in check-in failed.');
     }
   };
 
   const startScanner = () => {
     setIsScanning(true);
     setTimeout(() => {
-      // Use standard window.Html5Qrcode or require fallback
       const Html5 = window.Html5Qrcode || require('html5-qrcode');
       const { Html5QrcodeScanner } = Html5;
       const scanner = new Html5QrcodeScanner('reader', {
@@ -78,31 +84,37 @@ export const QRScanner = () => {
             const res = await api.post('/reception/scan-qr', { qrPayload: decodedText });
             setScannedData(res.data);
             setMsg('✅ QR Code Decoded Successfully!');
+            toast.success('Camera scan successful!');
           } catch (err) {
             alert('Decoded QR but patient look-up failed: ' + (err.response?.data?.error || err.message));
           }
         },
-        (error) => {
-          // Silent scan error
-        }
+        () => {}
       );
     }, 300);
   };
 
   return (
-    <div className="space-y-6 max-w-xl mx-auto text-xs">
-      <div className="glass-panel p-6 space-y-4">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <QrCode className="w-5 h-5 text-amber-400" /> Universal QR Passport Scanner
-        </h3>
+    <div className="space-y-6 max-w-xl mx-auto font-['Inter',sans-serif]">
+      <Helmet>
+        <title>Universal QR Scanner | AegisCare ERP</title>
+      </Helmet>
+
+      <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm space-y-5">
+        <div className="border-b border-slate-100 pb-3">
+          <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
+            <QrCode className="w-5 h-5 text-blue-600" /> Universal QR Health Passport Scanner
+          </h3>
+          <p className="text-xs text-slate-500">Scan patient QR codes for instant appointment check-in & EMR lookup</p>
+        </div>
 
         {/* Live Camera Scanner Container */}
         {isScanning ? (
-          <div className="bg-slate-950 p-4 rounded-xl border border-slate-700">
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-300 space-y-3">
             <div id="reader" className="w-full"></div>
             <button
               onClick={() => setIsScanning(false)}
-              className="mt-3 w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs"
+              className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 rounded-xl text-xs"
             >
               Cancel Camera Scan
             </button>
@@ -110,90 +122,90 @@ export const QRScanner = () => {
         ) : (
           <button
             onClick={startScanner}
-            className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-3 rounded-xl text-xs shadow mb-4 flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-xs shadow-md mb-2 flex items-center justify-center gap-2"
           >
-            <QrCode className="w-4 h-4" /> Start Live Camera QR Scan
+            <Camera className="w-4 h-4" /> Start Live Camera QR Scan
           </button>
         )}
 
-        <form onSubmit={handleScan} className="space-y-3">
+        <form onSubmit={handleScan} className="space-y-3 text-xs">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Manual Input Payload (Fallback)</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Manual Payload (Fallback)</label>
             <textarea
               value={qrInput}
               onChange={(e) => setQrInput(e.target.value)}
               rows="2"
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs font-mono text-amber-300"
+              className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-mono text-blue-700 focus:outline-none focus:border-blue-600"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl text-xs shadow"
+            className="w-full bg-slate-900 hover:bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-xs transition-colors"
           >
-            Process Payload Manual
+            Process Payload Manually
           </button>
         </form>
 
         {msg && (
-          <div className="bg-emerald-950 border border-emerald-500 text-emerald-300 text-xs p-3 rounded-xl flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" /> {msg}
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3.5 rounded-xl flex items-center gap-2 font-medium">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> {msg}
           </div>
         )}
 
         {scannedData && (
-          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4 shadow-xs">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-white text-sm">{scannedData.patient.fullName}</h4>
-                <span className="text-xs font-mono text-amber-400">UPID: {scannedData.patient.universalPatientId}</span>
+                <h4 className="font-bold text-slate-900 text-sm">{scannedData.patient.fullName}</h4>
+                <span className="text-xs font-mono font-bold text-blue-600">UPID: {scannedData.patient.universalPatientId}</span>
               </div>
-              <span className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full">
+              <span className="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold">
                 {scannedData.emrRecordCount} EMR Records
               </span>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-slate-800">
-              <span className="text-xs text-slate-400 font-semibold block">Appointments:</span>
+            <div className="space-y-2 pt-2 border-t border-slate-200">
+              <span className="text-xs text-slate-700 font-bold block">Scheduled Appointments:</span>
               {scannedData.activeAppointments.map((apt) => (
-                <div key={apt._id} className="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-xs">
+                <div key={apt._id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 text-xs">
                   <div>
-                    <span className="font-bold text-white block">{apt.appointmentNumber}</span>
-                    <span className="text-slate-400">Doctor: {apt.doctorName} (Status: {apt.status})</span>
+                    <span className="font-bold text-slate-900 block font-mono">{apt.appointmentNumber}</span>
+                    <span className="text-slate-500">Doctor: {apt.doctorName} ({apt.status})</span>
                   </div>
                   {apt.status === 'BOOKED' && (
                     <button
                       onClick={() => handleCheckIn(apt._id)}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded-lg font-bold"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs shadow-xs"
                     >
-                      Check-In
+                      Check-In Patient
                     </button>
                   )}
                 </div>
               ))}
               {scannedData.activeAppointments.length === 0 && (
-                <p className="text-[11px] text-slate-500">No scheduled appointments found for today.</p>
+                <p className="text-xs text-slate-400">No scheduled appointments found for today.</p>
               )}
             </div>
 
-            <div className="space-y-2 pt-3 border-t border-slate-800">
-              <span className="text-xs text-amber-400 font-semibold block">Create Walk-In Check-In (New Queue Position):</span>
+            <div className="space-y-2 pt-3 border-t border-slate-200 text-xs">
+              <span className="text-xs text-slate-800 font-bold block">Instant Walk-In Check-In:</span>
               <div className="flex gap-2">
                 <select
                   value={selectedDoctor}
                   onChange={(e) => setSelectedDoctor(e.target.value)}
-                  className="bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white flex-1"
+                  className="bg-white border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 flex-1"
                 >
                   <option value="">-- Choose Doctor --</option>
                   {doctors.map((d) => (
                     <option key={d._id} value={d._id}>
-                      Dr. {d.fullName} — {d.doctorDetails?.specialization || d.department || 'General Physician'} ({d.doctorDetails?.roomNo || 'Clinic Desk'})
+                      Dr. {d.fullName} — {d.doctorDetails?.specialization || 'General Physician'}
                     </option>
                   ))}
                 </select>
                 <button
                   onClick={handleCreateWalkin}
-                  className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-lg text-xs font-bold"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs"
                 >
                   Create & Check-In
                 </button>
