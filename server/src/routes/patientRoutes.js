@@ -4,10 +4,23 @@ const { verifyToken, authorizeRoles } = require('../middleware/auth');
 
 const router = express.Router();
 router.use(verifyToken);
-router.use(authorizeRoles('PATIENT'));
+
+// ── 0. Get List of Patients (accessible to RECEPTIONIST, HOSPITAL_ADMIN, DOCTOR, SYSTEM_ADMIN, PATIENT) ──
+router.get('/', async (req, res) => {
+  try {
+    const query = { role: 'PATIENT' };
+    if (req.user.role === 'PATIENT') {
+      query._id = req.user.id;
+    }
+    const patients = await User.find(query).select('-passwordHash').sort({ fullName: 1 });
+    return res.json({ patients });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to fetch patients list.', detail: err.message });
+  }
+});
 
 // ── 1. Get Universal QR Code ───────────────────────────────────────────────
-router.get('/qr-code', async (req, res) => {
+router.get('/qr-code', authorizeRoles('PATIENT', 'RECEPTIONIST', 'HOSPITAL_ADMIN'), async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash');
     if (!user) return res.status(404).json({ error: 'Patient account not found.' });
@@ -24,7 +37,7 @@ router.get('/qr-code', async (req, res) => {
 });
 
 // ── 2. Book Appointment (Queue-ordered) ───────────────────────────────────
-router.post('/appointments/book', async (req, res) => {
+router.post('/appointments/book', authorizeRoles('PATIENT'), async (req, res) => {
   const { doctorId, hospitalId, bookingNotes, date, timeSlot } = req.body;
   const patientId = req.user.id;
 
@@ -80,9 +93,10 @@ router.get('/hospitals/:id/doctors', async (req, res) => {
 });
 
 // ── 3. Get Patient's Appointment History with Status Colours ──────────────
-router.get('/appointments', async (req, res) => {
+router.get('/appointments', authorizeRoles('PATIENT', 'RECEPTIONIST', 'HOSPITAL_ADMIN'), async (req, res) => {
   try {
-    const appointments = await Appointment.find({ patientId: req.user.id })
+    const patientId = req.user.role === 'PATIENT' ? req.user.id : req.query.patientId || req.user.id;
+    const appointments = await Appointment.find({ patientId })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -99,7 +113,7 @@ router.get('/appointments', async (req, res) => {
 });
 
 // ── 4. Cancel Appointment ─────────────────────────────────────────────────
-router.post('/appointments/:id/cancel', async (req, res) => {
+router.post('/appointments/:id/cancel', authorizeRoles('PATIENT'), async (req, res) => {
   try {
     const appointment = await Appointment.findOneAndUpdate(
       { _id: req.params.id, patientId: req.user.id, status: { $in: ['BOOKED'] } },
@@ -116,7 +130,7 @@ router.post('/appointments/:id/cancel', async (req, res) => {
 });
 
 // ── 5. Data Access Approval Workflow ──────────────────────────────────────
-router.post('/data-access/grant', async (req, res) => {
+router.post('/data-access/grant', authorizeRoles('PATIENT'), async (req, res) => {
   const { doctorId, grantDurationHours } = req.body;
   return res.json({
     message: `Data access granted to Doctor for ${grantDurationHours || 24} hours.`,

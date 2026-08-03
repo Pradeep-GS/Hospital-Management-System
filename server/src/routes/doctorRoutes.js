@@ -33,8 +33,8 @@ router.get('/dashboard', async (req, res) => {
 });
 
 // ── 2. Activate Appointment → Opens EMR Access Window ─────────────────────
-router.post('/appointments/:id/activate', async (req, res) => {
-  const { id } = req.params;
+const activateAppointmentHandler = async (req, res) => {
+  const id = req.params.id || req.params.queueId;
   const doctorId = req.user.id;
 
   try {
@@ -52,7 +52,7 @@ router.post('/appointments/:id/activate', async (req, res) => {
     );
 
     if (!appointment) {
-      return res.status(404).json({ error: 'Appointment not found.' });
+      return res.status(404).json({ error: 'Appointment / Queue item not found.' });
     }
 
     return res.json({
@@ -62,7 +62,16 @@ router.post('/appointments/:id/activate', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Appointment activation failed.', detail: err.message });
   }
-});
+};
+
+// Aliases for /queue/:id/activate, /queue/:queueId/activate, and /appointments/:id/activate via POST & PATCH
+router.post('/appointments/:id/activate', activateAppointmentHandler);
+router.patch('/appointments/:id/activate', activateAppointmentHandler);
+
+router.post('/queue/:id/activate', activateAppointmentHandler);
+router.patch('/queue/:id/activate', activateAppointmentHandler);
+router.post('/queue/:queueId/activate', activateAppointmentHandler);
+router.patch('/queue/:queueId/activate', activateAppointmentHandler);
 
 // ── 3. Get Patient EMR History (ACTIVE appointment required) ───────────────
 router.get('/emr', validateActiveEMRAccess, async (req, res) => {

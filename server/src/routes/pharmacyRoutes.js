@@ -121,7 +121,7 @@ router.post('/calculate-bill-preview', async (req, res) => {
 });
 
 // ── 6. Checkout: Collect Payment → Deplete Stock → Lock EMR ───────────────
-router.post('/checkout', async (req, res) => {
+const checkoutHandler = async (req, res) => {
   const { appointmentId, paymentMethod = 'CARD', roomDays = 1, machineryHours = 0 } = req.body;
   const hospitalId = req.user.hospitalId;
 
@@ -219,6 +219,9 @@ router.post('/checkout', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Checkout failed.', detail: err.message });
   }
-});
+};
+
+router.post('/checkout', checkoutHandler);
+router.post('/checkout-invoice', checkoutHandler);
 
 module.exports = router;

@@ -23,6 +23,17 @@ router.get('/doctors', async (req, res) => {
   }
 });
 
+// Get Patients List for Reception Desk
+router.get('/patients', async (req, res) => {
+  try {
+    const patients = await User.find({ role: 'PATIENT' }).select('-passwordHash').sort({ fullName: 1 });
+    return res.json({ patients });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to fetch patients list.', detail: err.message });
+  }
+});
+
+
 // ── 1. Register New Patient by Receptionist ──────────────────────────────
 router.post('/patients/register', async (req, res) => {
   const hospitalId = req.user.hospitalId;
@@ -124,8 +135,8 @@ router.post('/check-in', async (req, res) => {
   }
 });
 
-// Create Walk-in Appointment and Check-In immediately
-router.post('/appointments/create-walkin', async (req, res) => {
+// Create Walk-in Appointment and Check-In immediately (book-walkin & create-walkin aliases)
+const createWalkinHandler = async (req, res) => {
   const { patientId, doctorId } = req.body;
   const hospitalId = req.user.hospitalId;
 
@@ -164,7 +175,10 @@ router.post('/appointments/create-walkin', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Failed to create walk-in appointment.', detail: err.message });
   }
-});
+};
+
+router.post('/appointments/create-walkin', createWalkinHandler);
+router.post('/appointments/book-walkin', createWalkinHandler);
 
 // ── 4. Emergency Room Allocation + Equipment Provisioning ─────────────────
 router.post('/emergency/allocate-room', async (req, res) => {

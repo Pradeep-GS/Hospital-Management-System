@@ -158,7 +158,7 @@ router.post('/inventory/rooms', async (req, res) => {
   }
 });
 
-// ── 7. Staff Management (Get, Edit, Approve, Reset Password) ────────────────
+// ── 7. Staff Management (Get, Edit, Approve, Status Toggle, Reset Password) ──
 router.get('/staff', async (req, res) => {
   const hospitalId = req.user.hospitalId;
   try {
@@ -168,6 +168,7 @@ router.get('/staff', async (req, res) => {
     return res.status(500).json({ error: 'Failed to fetch staff directory.', detail: err.message });
   }
 });
+
 router.post('/staff/add', async (req, res) => {
   const hospitalId = req.user.hospitalId;
   const { fullName, email, phone, role, department, designation, gender, joiningDate } = req.body;
@@ -219,6 +220,41 @@ router.post('/staff/add', async (req, res) => {
     return res.status(500).json({ error: 'Failed to create employee.', detail: err.message });
   }
 });
+
+// Toggle Staff Active / Deactivated Status (PATCH & POST & PUT handlers)
+const toggleStaffStatus = async (req, res) => {
+  const staffId = req.params.id || req.params.staffId;
+  try {
+    const user = await User.findOne({ _id: staffId, hospitalId: req.user.hospitalId });
+    if (!user) {
+      return res.status(404).json({ error: 'Hospital staff member not found.' });
+    }
+
+    const newStatus = typeof req.body.isActive === 'boolean' ? req.body.isActive : !user.isActive;
+    user.isActive = newStatus;
+    await user.save();
+
+    return res.json({
+      message: `Staff account ${user.fullName} is now ${user.isActive ? 'Active' : 'Deactivated'}.`,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        isActive: user.isActive,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to toggle staff status.', detail: err.message });
+  }
+};
+
+router.patch('/staff/:id/status', toggleStaffStatus);
+router.patch('/staff/:staffId/status', toggleStaffStatus);
+router.post('/staff/:id/status', toggleStaffStatus);
+router.post('/staff/:staffId/status', toggleStaffStatus);
+router.put('/staff/:id/status', toggleStaffStatus);
+router.put('/staff/:staffId/status', toggleStaffStatus);
 
 router.delete('/staff/:id', async (req, res) => {
   try {
