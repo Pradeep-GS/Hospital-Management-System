@@ -195,8 +195,17 @@ export const RegisterPatient = () => {
               <div><span className="text-slate-400 block text-[11px]">Login Username</span><span className="font-mono text-slate-800">{result.email}</span></div>
               <div><span className="text-slate-400 block text-[11px]">Default Password</span><span className="font-mono text-blue-600 font-bold">12345</span></div>
             </div>
-            <div className="bg-white p-3 rounded-xl font-mono text-[11px] text-slate-700 border border-slate-200 break-all">
-              QR Tag Payload: {result.qrCodePayload}
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-slate-200">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(result.qrCodePayload || result.universalPatientId)}`}
+                alt="Patient QR Code"
+                className="w-28 h-28 rounded-lg border border-slate-200"
+              />
+              <div className="space-y-1 text-xs">
+                <span className="font-bold text-slate-900 block font-mono text-xs">QR Tag Payload:</span>
+                <p className="font-mono text-[11px] text-blue-700 break-all">{result.qrCodePayload}</p>
+                <p className="text-[10px] text-slate-500">Scan using the Universal QR Scanner at Reception for instant check-in.</p>
+              </div>
             </div>
           </div>
         )}

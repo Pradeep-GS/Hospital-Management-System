@@ -131,10 +131,12 @@ export const PatientDashboard = () => {
             <Shield className="w-3.5 h-3.5 text-blue-600" /> Universal Health Passport
           </div>
 
-          <div className="bg-white p-5 rounded-2xl inline-block shadow-md mx-auto border-2 border-blue-200">
-            <svg className="w-40 h-40 mx-auto" viewBox="0 0 100 100">
-              <path d="M0,0 h30 v30 h-30 z M40,0 h20 v10 h-20 z M70,0 h30 v30 h-30 z M10,10 h10 v10 h-10 z M80,10 h10 v10 h-10 z M0,40 h10 v20 h-10 z M30,40 h30 v30 h-30 z M70,40 h20 v20 h-20 z M0,70 h30 v30 h-30 z M10,80 h10 v10 h-10 z M80,70 h20 v30 h-20 z" fill="#1e293b" />
-            </svg>
+          <div className="bg-white p-4 rounded-2xl inline-block shadow-md mx-auto border-2 border-blue-200">
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrData.qrCodePayload || qrData.universalPatientId)}`}
+              alt="Universal Patient QR Passport"
+              className="w-44 h-44 mx-auto rounded-lg"
+            />
             <span className="text-[11px] font-mono text-blue-700 font-extrabold block mt-2">
               {qrData.universalPatientId}
             </span>

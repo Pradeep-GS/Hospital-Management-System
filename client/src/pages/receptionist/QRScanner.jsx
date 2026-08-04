@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QrCode, CheckCircle2, AlertTriangle, Camera, Check } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export const QRScanner = () => {
   const [qrInput, setQrInput] = useState('UPID-8849-2026|JOHNATHAN_DOE|UNIVERSAL_HOSPITAL_KEY');
@@ -12,7 +13,7 @@ export const QRScanner = () => {
   const [msg, setMsg] = useState('');
   const [isScanning, setIsScanning] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     api.get('/reception/doctors')
       .then((res) => {
         setDoctors(res.data.doctors || []);
@@ -22,6 +23,57 @@ export const QRScanner = () => {
       })
       .catch((err) => console.error(err));
   }, []);
+
+  // Handle live camera HTML5 QR Code scanning lifecycle cleanly
+  useEffect(() => {
+    if (!isScanning) return;
+
+    let scanner = null;
+    try {
+      scanner = new Html5QrcodeScanner(
+        'reader',
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          rememberLastUsedCamera: true
+        },
+        false
+      );
+
+      scanner.render(
+        async (decodedText) => {
+          setQrInput(decodedText);
+          try {
+            await scanner.clear();
+          } catch (e) {}
+          setIsScanning(false);
+
+          try {
+            const res = await api.post('/reception/scan-qr', { qrPayload: decodedText });
+            setScannedData(res.data);
+            setMsg('✅ QR Code Scanned & Decoded Successfully!');
+            toast.success('Camera scan successful!');
+          } catch (err) {
+            alert('Decoded QR but patient look-up failed: ' + (err.response?.data?.error || err.message));
+          }
+        },
+        (scanError) => {
+          // Frame decode error (normal while searching for QR)
+        }
+      );
+    } catch (err) {
+      console.error('Camera scanner init error:', err);
+      toast.error('Camera access failed. Please ensure camera permissions are granted.');
+    }
+
+    return () => {
+      if (scanner) {
+        try {
+          scanner.clear();
+        } catch (e) {}
+      }
+    };
+  }, [isScanning]);
 
   const handleScan = async (e) => {
     if (e) e.preventDefault();
@@ -64,36 +116,6 @@ export const QRScanner = () => {
     }
   };
 
-  const startScanner = () => {
-    setIsScanning(true);
-    setTimeout(() => {
-      const Html5 = window.Html5Qrcode || require('html5-qrcode');
-      const { Html5QrcodeScanner } = Html5;
-      const scanner = new Html5QrcodeScanner('reader', {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true
-      });
-
-      scanner.render(
-        async (decodedText) => {
-          setQrInput(decodedText);
-          scanner.clear();
-          setIsScanning(false);
-          try {
-            const res = await api.post('/reception/scan-qr', { qrPayload: decodedText });
-            setScannedData(res.data);
-            setMsg('✅ QR Code Decoded Successfully!');
-            toast.success('Camera scan successful!');
-          } catch (err) {
-            alert('Decoded QR but patient look-up failed: ' + (err.response?.data?.error || err.message));
-          }
-        },
-        () => {}
-      );
-    }, 300);
-  };
-
   return (
     <div className="space-y-6 max-w-xl mx-auto font-['Inter',sans-serif]">
       <Helmet>
@@ -121,7 +143,7 @@ export const QRScanner = () => {
           </div>
         ) : (
           <button
-            onClick={startScanner}
+            onClick={() => setIsScanning(true)}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-xs shadow-md mb-2 flex items-center justify-center gap-2"
           >
             <Camera className="w-4 h-4" /> Start Live Camera QR Scan
