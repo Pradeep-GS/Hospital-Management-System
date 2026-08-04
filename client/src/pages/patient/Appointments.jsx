@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, CheckCircle, Clock, Building2, Stethoscope, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Calendar, Plus, CheckCircle, Clock, Building2, Stethoscope, ArrowRight, CheckCircle2, Bot, Sparkles } from 'lucide-react';
 import api from '../../services/api';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
+import PatientChatbot from '../../components/PatientChatbot';
 
 export const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -17,7 +18,8 @@ export const Appointments = () => {
   
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState('');
-  const [showBookForm, setShowBookForm] = useState(false);
+  const [showBookForm, setShowBookForm] = useState(true);
+  const [bookingMode, setBookingMode] = useState('ai_chat'); // 'ai_chat' or 'manual'
 
   const fetchAppointments = async () => {
     try {
@@ -114,12 +116,41 @@ export const Appointments = () => {
         </div>
       )}
 
-      {/* Booking Form Layout */}
+      {/* Booking Mode Selector Header */}
       {showBookForm && (
-        <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm space-y-4">
-          <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider font-['Poppins',sans-serif]">
-            Online Appointment Booking Wizard
-          </h4>
+        <div className="flex items-center gap-3 bg-slate-950 p-2 rounded-2xl border border-slate-800">
+          <button
+            onClick={() => setBookingMode('ai_chat')}
+            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              bookingMode === 'ai_chat'
+                ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Bot className="w-4 h-4 text-teal-300" /> 🤖 AI Symptom & Appointment Booking Chatbot
+          </button>
+          <button
+            onClick={() => setBookingMode('manual')}
+            className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              bookingMode === 'manual'
+                ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Calendar className="w-4 h-4 text-pink-300" /> Standard Manual Booking Form
+          </button>
+        </div>
+      )}
+
+      {/* AI Chatbot Assistant Component */}
+      {showBookForm && bookingMode === 'ai_chat' && (
+        <PatientChatbot hospitals={hospitals} onBookSuccess={fetchAppointments} />
+      )}
+
+      {/* Manual Booking Form Layout */}
+      {showBookForm && bookingMode === 'manual' && (
+        <div className="glass-panel p-6 space-y-4 border-pink-500/30">
+          <h4 className="text-sm font-bold text-white uppercase tracking-wider">Appointment Booking Wizard</h4>
           <form onSubmit={handleBook} className="space-y-4 text-xs">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

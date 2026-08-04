@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Lock, Unlock, CheckCircle2, Send, Activity, User, Receipt, Pill, Plus, Trash2, Stethoscope } from 'lucide-react';
+import { FileText, Lock, Unlock, CheckCircle2, Send, Activity, User, Receipt, Pill, Plus, Trash2, Stethoscope, Bot } from 'lucide-react';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
+import DoctorPrescriptionAIAssistant from '../../components/DoctorPrescriptionAIAssistant';
 
 export const EMR = () => {
   const [activeApt, setActiveApt] = useState(null);
@@ -79,6 +80,16 @@ export const EMR = () => {
     const updated = [...prescriptionItems];
     updated[index][field] = value;
     setPrescriptionItems(updated);
+  };
+
+  const handleApproveAIMedicine = (approvedItem) => {
+    setPrescriptionItems((prev) => {
+      // Replace placeholder default item if unfilled, else append
+      if (prev.length === 1 && (!prev[0].medicineName || prev[0].medicineName === 'Paracetamol 500mg')) {
+        return [approvedItem];
+      }
+      return [...prev, approvedItem];
+    });
   };
 
   const handleCreatePrescription = async (e) => {
@@ -332,6 +343,16 @@ export const EMR = () => {
                     required
                   ></textarea>
                 </div>
+
+                {/* AI Prescription Clinical Assistant */}
+                <DoctorPrescriptionAIAssistant
+                  patientId={activeApt.patientId}
+                  appointmentId={activeApt._id}
+                  diagnosis={diagnosis}
+                  symptoms={fullEmr.emrRecord?.symptoms?.join(', ') || ''}
+                  notes={notes}
+                  onApproveMedicine={handleApproveAIMedicine}
+                />
 
                 {/* Multi-Item Medicines Table */}
                 <div className="space-y-3 pt-2">

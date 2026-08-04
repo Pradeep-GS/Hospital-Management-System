@@ -14,6 +14,7 @@ const doctorRoutes = require('./routes/doctorRoutes');
 const receptionRoutes = require('./routes/receptionRoutes');
 const patientRoutes = require('./routes/patientRoutes');
 const pharmacyRoutes = require('./routes/pharmacyRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -52,6 +53,7 @@ app.use('/api/v1/doctors', doctorRoutes);
 app.use('/api/v1/reception', receptionRoutes);
 app.use('/api/v1/patients', patientRoutes);
 app.use('/api/v1/pharmacy', pharmacyRoutes);
+app.use('/api/v1/ai', aiRoutes);
 
 // Fallback Route Aliases (in case VITE_API_URL omits /api/v1)
 app.use('/auth', authRoutes);
