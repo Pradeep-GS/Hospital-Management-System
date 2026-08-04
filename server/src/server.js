@@ -63,6 +63,7 @@ app.use('/doctors', doctorRoutes);
 app.use('/reception', receptionRoutes);
 app.use('/patients', patientRoutes);
 app.use('/pharmacy', pharmacyRoutes);
+app.use('/ai', aiRoutes);
 
 app.get('/', (req, res) => {
   res.json({
