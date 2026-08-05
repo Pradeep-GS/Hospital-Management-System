@@ -13,8 +13,17 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user || user.passwordHash !== password) {
+    const normalizedEmail = email.trim().toLowerCase();
+    let user = await User.findOne({ email: normalizedEmail });
+
+    // Fallback: If user not found, attempt auto-seeding demo database if empty
+    if (!user) {
+      const { autoSeedDemoData } = require('../config/db');
+      await autoSeedDemoData();
+      user = await User.findOne({ email: normalizedEmail });
+    }
+
+    if (!user || user.passwordHash !== password.trim()) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
     if (user.approvalStatus !== 'APPROVED') {

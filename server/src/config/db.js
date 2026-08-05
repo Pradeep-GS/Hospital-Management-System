@@ -207,6 +207,42 @@ const mockStore = {
   invoices: []
 };
 
+const autoSeedDemoData = async () => {
+  try {
+    const { User, Hospital } = require('../models');
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log('🌱 Database is empty. Auto-seeding default demo accounts...');
+      let hospitalA = await Hospital.findOne({ hospitalCode: 'HOSP-METRO-01' });
+      if (!hospitalA) {
+        hospitalA = await Hospital.create({
+          hospitalCode: 'HOSP-METRO-01',
+          name: 'City Central Hospital',
+          address: { street: '100 Medical Plaza', city: 'Metropolis', state: 'NY', zipCode: '10001' },
+          contactEmail: 'admin@metrohospital.org',
+          contactPhone: '+1-555-0199',
+          verificationStatus: 'APPROVED',
+          dualVerification: { hospitalVerifiedAt: new Date(), adminVerifiedAt: new Date() },
+          consultantFeeStructure: { generalPhysician: 50, specialist: 120, superSpecialist: 200 }
+        });
+      }
+
+      await User.insertMany([
+        { fullName: 'Global System Admin', email: 'admin@platform.com', passwordHash: 'admin123', phone: '+1-800-555-0000', role: 'SYSTEM_ADMIN', approvalStatus: 'APPROVED' },
+        { hospitalId: hospitalA._id, fullName: 'Dr. Sarah Connor', email: 'hospadmin@metrohospital.org', passwordHash: 'admin123', phone: '+1-555-0199', role: 'HOSPITAL_ADMIN', approvalStatus: 'APPROVED' },
+        { hospitalId: hospitalA._id, fullName: 'Dr. Gregory House', email: 'house@metrohospital.org', passwordHash: 'doc123', phone: '+1-555-0101', role: 'DOCTOR', approvalStatus: 'APPROVED', doctorDetails: { specialization: 'Internal Medicine & Diagnostics', licenseNumber: 'MD-884920', consultationFee: 120, roomNo: 'Clinic 302', isAvailable: true } },
+        { hospitalId: hospitalA._id, fullName: 'Dr. Meredith Grey', email: 'grey@metrohospital.org', passwordHash: 'doc123', phone: '+1-555-0102', role: 'DOCTOR', approvalStatus: 'APPROVED', doctorDetails: { specialization: 'General Surgery', licenseNumber: 'MD-991204', consultationFee: 150, roomNo: 'Clinic 405', isAvailable: true } },
+        { hospitalId: hospitalA._id, fullName: 'Pam Beesly', email: 'reception@metrohospital.org', passwordHash: 'rec123', phone: '+1-555-0103', role: 'RECEPTIONIST', approvalStatus: 'APPROVED' },
+        { universalPatientId: 'UPID-8849-2026', fullName: 'Johnathan Doe', email: 'john.doe@gmail.com', passwordHash: 'patient123', phone: '+1-555-9088', role: 'PATIENT', approvalStatus: 'APPROVED', qrCodePayload: 'UPID-8849-2026|JOHNATHAN_DOE|UNIVERSAL_HOSPITAL_KEY', age: 34, gender: 'Male' },
+        { hospitalId: hospitalA._id, fullName: 'Walter White', email: 'pharmacy@metrohospital.org', passwordHash: 'pharm123', phone: '+1-555-0105', role: 'PHARMACY', approvalStatus: 'APPROVED' }
+      ]);
+      console.log('✅ Demo accounts auto-seeded successfully.');
+    }
+  } catch (err) {
+    console.warn('⚠️ Auto-seed warning:', err.message);
+  }
+};
+
 const connectDB = async () => {
   const connString = process.env.MONGODB_URI;
   if (!connString) {
@@ -216,6 +252,7 @@ const connectDB = async () => {
   try {
     await mongoose.connect(connString);
     console.log('✅ MongoDB connected successfully.');
+    await autoSeedDemoData();
     return true;
   } catch (err) {
     console.warn('⚠️ MongoDB connection failed. Falling back to turnkey In-Memory Data Store:', err.message);
@@ -223,4 +260,4 @@ const connectDB = async () => {
   }
 };
 
-module.exports = { connectDB, mockStore };
+module.exports = { connectDB, mockStore, autoSeedDemoData };
