@@ -16,5 +16,9 @@ module.exports = {
   Equipment:          require('./Equipment'),
   OxygenInventory:    require('./OxygenInventory'),
   LoginLog:           require('./LoginLog'),
-  Notification:       require('./Notification')
+  Notification:       require('./Notification'),
+  AISummaryHistory:   require('./AISummaryHistory'),
+  AIAuditLog:         require('./AIAuditLog'),
+  NotificationLog:   require('./NotificationLog'),
+  TriageRecord:       require('./TriageRecord')
 };

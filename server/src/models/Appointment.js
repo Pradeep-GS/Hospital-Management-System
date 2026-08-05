@@ -63,7 +63,15 @@ const AppointmentSchema = new mongoose.Schema(
       allocatedAt:{ type: Date }
     },
 
-    notes: { type: String, default: '' }
+    notes: { type: String, default: '' },
+
+    aiPrediction: {
+      attendanceProbability: { type: Number, default: 85 }, // Percentage
+      noShowProbability: { type: Number, default: 15 },    // Percentage
+      recommendedAction: { type: String, default: 'Reminder' }, // Reminder, Teleconsultation, Reschedule, Backup Patient
+      riskFactors: [{ type: String }],
+      predictedAt: { type: Date }
+    }
   },
   { timestamps: true }
 );

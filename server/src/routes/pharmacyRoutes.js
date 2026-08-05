@@ -11,8 +11,12 @@ router.use(authorizeRoles('PHARMACY', 'HOSPITAL_ADMIN'));
 router.get('/prescriptions/pending', async (req, res) => {
   const hospitalId = req.user.hospitalId;
   try {
-    const prescriptions = await Prescription.find({ hospitalId, dispenseStatus: 'PENDING' })
-      .sort({ createdAt: -1 });
+    // IMPORTANT SECURITY REQUIREMENT: Pharmacy MUST NEVER receive prescriptions before doctor approval!
+    const prescriptions = await Prescription.find({ 
+      hospitalId, 
+      dispenseStatus: 'PENDING',
+      approvalStatus: { $ne: 'DRAFT' } // Only APPROVED prescriptions visible to pharmacy
+    }).sort({ createdAt: -1 });
     return res.json({ prescriptions });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to fetch prescriptions.', detail: err.message });

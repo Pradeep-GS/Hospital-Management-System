@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 // In-Memory Data Store Fallback for immediate turnkey execution
 const mockStore = {

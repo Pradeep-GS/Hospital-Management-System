@@ -44,12 +44,14 @@ export const Sidebar = () => {
           { label: 'Rooms & Occupancy', path: '/hospital/rooms', icon: Bed },
           { label: 'Equipment & Wards', path: '/hospital/equipment', icon: Wind },
           { label: 'Oxygen Inventory', path: '/hospital/oxygen', icon: Activity },
+          { label: 'Smart Reminder Engine', path: '/hospital/reminders', icon: Clock },
           { label: 'Profile Settings', path: '/hospital/profile', icon: Settings },
         ];
       case 'SYSTEM_ADMIN':
         return [
           { label: 'Platform Analytics', path: '/admin/dashboard', icon: LayoutDashboard },
           { label: 'Hospital Onboarding', path: '/admin/hospitals', icon: Building2 },
+          { label: 'Smart Reminder Engine', path: '/admin/reminders', icon: Clock },
           { label: 'Profile Settings', path: '/admin/profile', icon: Settings },
         ];
       case 'PHARMACY':
@@ -57,6 +59,7 @@ export const Sidebar = () => {
           { label: 'Pharmacy Dashboard', path: '/pharmacy/dashboard', icon: LayoutDashboard },
           { label: 'Pending Prescriptions', path: '/pharmacy/prescriptions', icon: Pill },
           { label: 'Medicine Stock', path: '/pharmacy/inventory', icon: Building2 },
+          { label: 'AI Inventory Forecast', path: '/pharmacy/inventory-prediction', icon: Activity },
           { label: 'GST Invoicing & Checkout', path: '/pharmacy/billing', icon: Receipt },
           { label: 'Profile Settings', path: '/pharmacy/profile', icon: Settings },
         ];

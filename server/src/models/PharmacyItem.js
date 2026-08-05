@@ -54,6 +54,17 @@ const PharmacyItemSchema = new mongoose.Schema(
       type: String,
       enum: ['TABLET', 'CAPSULE', 'SYRUP', 'INJECTION', 'TOPICAL', 'DROPS', 'OTHER'],
       default: 'TABLET'
+    },
+
+    aiAnalytics: {
+      remainingStockDays: { type: Number, default: 30 },
+      suggestedReorderDate: { type: Date },
+      suggestedReorderQuantity: { type: Number, default: 50 },
+      expiryRisk: { type: String, enum: ['LOW', 'MODERATE', 'HIGH', 'CRITICAL'], default: 'LOW' },
+      demandClassification: { type: String, enum: ['FAST_MOVING', 'SLOW_MOVING', 'SEASONAL'], default: 'FAST_MOVING' },
+      predictedMonthlyDemand: { type: Number, default: 100 },
+      purchaseRecommendation: { type: String, default: '' },
+      supplierRecommendation: { type: String, default: '' }
     }
   },
   { timestamps: true }

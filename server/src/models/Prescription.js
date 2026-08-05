@@ -44,6 +44,39 @@ const PrescriptionSchema = new mongoose.Schema(
 
     items: [PrescriptionItemSchema],
 
+    approvalStatus: {
+      type: String,
+      enum: ['DRAFT', 'APPROVED', 'REJECTED'],
+      default: 'APPROVED' // legacy or explicit doctor creation defaults to APPROVED
+    },
+
+    approvedAt: { type: Date },
+
+    digitalSignature: {
+      isSigned: { type: Boolean, default: false },
+      signatureHash: { type: String, default: '' },
+      signedAt: { type: Date },
+      doctorLicenseNumber: { type: String, default: '' }
+    },
+
+    aiSafetyChecks: {
+      drugInteractions: [{ type: String }],
+      duplicateMedicines: [{ type: String }],
+      allergyConflicts: [{ type: String }],
+      pregnancySafety: { type: String, default: 'SAFE' },
+      pediatricDosage: { type: String, default: 'SAFE' },
+      geriatricDosage: { type: String, default: 'SAFE' },
+      kidneyAdjustment: { type: String, default: 'NORMAL' },
+      liverAdjustment: { type: String, default: 'NORMAL' },
+      genericAlternatives: [{ type: String }]
+    },
+
+    instructions: { type: String, default: '' },
+    dietAdvice: { type: String, default: '' },
+    lifestyleAdvice: { type: String, default: '' },
+    hydrationAdvice: { type: String, default: '' },
+    exerciseAdvice: { type: String, default: '' },
+
     dispenseStatus: {
       type: String,
       enum: ['PENDING', 'DISPENSED'],
@@ -53,7 +86,7 @@ const PrescriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-PrescriptionSchema.index({ hospitalId: 1, dispenseStatus: 1, createdAt: -1 });
+PrescriptionSchema.index({ hospitalId: 1, dispenseStatus: 1, approvalStatus: 1, createdAt: -1 });
 PrescriptionSchema.index({ patientId: 1 });
 
 module.exports = mongoose.model('Prescription', PrescriptionSchema);

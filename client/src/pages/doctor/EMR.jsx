@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
 import DoctorPrescriptionAIAssistant from '../../components/DoctorPrescriptionAIAssistant';
+import AIMedicalSummaryView from '../../components/patient/AIMedicalSummaryView';
+import AIClinicalAssistant from '../../components/doctor/AIClinicalAssistant';
+import AIPrescriptionGenerator from '../../components/doctor/AIPrescriptionGenerator';
 
 export const EMR = () => {
   const [activeApt, setActiveApt] = useState(null);
@@ -174,66 +177,83 @@ export const EMR = () => {
       {success && <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold">{success}</div>}
 
       {fullEmr && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Left 4 Columns: Patient Details & History */}
-          <div className="lg:col-span-4 space-y-6">
+        <div className="space-y-6">
+          {/* Feature 1: AI Medical History Summary (Full Width Banner) */}
+          <AIMedicalSummaryView patientId={fullEmr.patient?._id} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* Patient Card */}
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
-              <h4 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-3">
-                <User className="w-4 h-4" /> Patient Profile
-              </h4>
+            {/* Left 4 Columns: Patient Details & History */}
+            <div className="lg:col-span-4 space-y-6">
+              
+              {/* Patient Card */}
+              <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
+                <h4 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-3">
+                  <User className="w-4 h-4" /> Patient Profile
+                </h4>
 
-              <div className="space-y-3 text-xs">
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Universal Patient ID</span>
-                  <span className="font-mono font-bold text-slate-900 text-sm bg-slate-100 px-2 py-0.5 rounded">{fullEmr.patient?.universalPatientId}</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="space-y-3 text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[11px]">Full Name</span>
-                    <span className="font-bold text-slate-900 text-sm">{fullEmr.patient?.fullName}</span>
+                    <span className="text-slate-400 block text-[11px]">Universal Patient ID</span>
+                    <span className="font-mono font-bold text-slate-900 text-sm bg-slate-100 px-2 py-0.5 rounded">{fullEmr.patient?.universalPatientId}</span>
                   </div>
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">Gender / Age</span>
-                    <span className="font-semibold text-slate-700">Male / 21 Years</span>
-                  </div>
-                </div>
 
-                <div>
-                  <span className="text-slate-400 block text-[11px]">Phone Number</span>
-                  <span className="text-slate-900 font-mono font-medium">{fullEmr.patient?.phone}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Previous Billing Summary */}
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-3">
-              <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-3">
-                <Receipt className="w-4 h-4 text-amber-500" /> Billing History
-              </h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar text-xs">
-                {fullEmr.invoices?.map((inv) => (
-                  <div key={inv._id} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex justify-between">
+                  <div className="grid grid-cols-2 gap-2 pt-1">
                     <div>
-                      <span className="text-slate-500 block font-mono text-[10px]">{inv.invoiceNumber}</span>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">{inv.paymentStatus}</span>
+                      <span className="text-slate-400 block text-[11px]">Full Name</span>
+                      <span className="font-bold text-slate-900 text-sm">{fullEmr.patient?.fullName}</span>
                     </div>
-                    <span className="font-mono font-bold text-slate-900">${inv.breakdown?.totalAmount}</span>
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Gender / Age</span>
+                      <span className="font-semibold text-slate-700">Male / 21 Years</span>
+                    </div>
                   </div>
-                ))}
-                {(!fullEmr.invoices || fullEmr.invoices.length === 0) && (
-                  <p className="text-slate-400 text-xs text-center py-2">No billing history found.</p>
-                )}
-              </div>
-            </div>
 
-          </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Phone Number</span>
+                    <span className="text-slate-900 font-mono font-medium">{fullEmr.patient?.phone}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Previous Billing Summary */}
+              <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-3">
+                <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-3">
+                  <Receipt className="w-4 h-4 text-amber-500" /> Billing History
+                </h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar text-xs">
+                  {fullEmr.invoices?.map((inv) => (
+                    <div key={inv._id} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex justify-between">
+                      <div>
+                        <span className="text-slate-500 block font-mono text-[10px]">{inv.invoiceNumber}</span>
+                        <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">{inv.paymentStatus}</span>
+                      </div>
+                      <span className="font-mono font-bold text-slate-900">${inv.breakdown?.totalAmount}</span>
+                    </div>
+                  ))}
+                  {(!fullEmr.invoices || fullEmr.invoices.length === 0) && (
+                    <p className="text-slate-400 text-xs text-center py-2">No billing history found.</p>
+                  )}
+                </div>
+              </div>
+
+            </div>
 
           {/* Right 8 Columns: Interactive Vitals Form & Prescription */}
           <div className="lg:col-span-8 space-y-6">
+
+            {/* Feature 3: AI Clinical Decision Assistant */}
+            <AIClinicalAssistant onApplyDiagnosis={(diag) => setDiagnosis(diag)} />
+
+            {/* Feature 4: AI Prescription Generator & Digital Signature Workflow */}
+            <AIPrescriptionGenerator
+              appointmentId={activeApt._id}
+              patientId={activeApt.patientId}
+              onPrescriptionApproved={() => {
+                toast.success('Prescription approved and locked!');
+                navigate('/doctor/dashboard');
+              }}
+            />
 
             {/* Interactive Vitals Form Entry */}
             <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
@@ -435,10 +455,10 @@ export const EMR = () => {
             </div>
 
           </div>
-
         </div>
-      )}
-    </div>
+      </div>
+    )}
+  </div>
   );
 };
 

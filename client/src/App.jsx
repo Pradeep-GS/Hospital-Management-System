@@ -58,6 +58,16 @@ import PharmacyDashboard from './pages/pharmacy/Dashboard';
 import PharmacyPrescriptions from './pages/pharmacy/Prescriptions';
 import PharmacyBilling from './pages/pharmacy/Billing';
 import PharmacyInventory from './pages/pharmacy/Inventory';
+import InventoryPredictionDashboard from './pages/pharmacy/InventoryPredictionDashboard';
+import ReminderAnalyticsDashboard from './pages/admin/ReminderAnalyticsDashboard';
+import HospitalCopilotDrawer from './components/common/HospitalCopilotDrawer';
+import { useAuth } from './context/AuthContext';
+
+function CopilotWrapper() {
+  const { user } = useAuth();
+  if (!user) return null;
+  return <HospitalCopilotDrawer user={user} />;
+}
 
 export function App() {
   return (
@@ -65,6 +75,7 @@ export function App() {
       <AuthProvider>
         <Toaster position="top-right" richColors closeButton expand={false} />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <CopilotWrapper />
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
@@ -121,6 +132,7 @@ export function App() {
               <Route path="equipment" element={<HospitalEquipment />} />
               <Route path="oxygen" element={<Oxygen />} />
               <Route path="audit-logs" element={<HospitalAuditLogs />} />
+              <Route path="reminders" element={<ReminderAnalyticsDashboard />} />
               <Route path="profile" element={<Profile />} />
             </Route>
           </Route>
@@ -131,6 +143,7 @@ export function App() {
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<SystemAdminDashboard />} />
               <Route path="hospitals" element={<SystemAdminHospitals />} />
+              <Route path="reminders" element={<ReminderAnalyticsDashboard />} />
               <Route path="profile" element={<Profile />} />
             </Route>
           </Route>
@@ -143,6 +156,7 @@ export function App() {
               <Route path="prescriptions" element={<PharmacyPrescriptions />} />
               <Route path="billing" element={<PharmacyBilling />} />
               <Route path="inventory" element={<PharmacyInventory />} />
+              <Route path="inventory-prediction" element={<InventoryPredictionDashboard />} />
               <Route path="profile" element={<Profile />} />
             </Route>
           </Route>

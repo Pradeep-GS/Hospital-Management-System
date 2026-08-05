@@ -6,10 +6,13 @@ import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 
+import AISmartTriageModal from '../../components/reception/AISmartTriageModal';
+
 export const ReceptionDashboard = () => {
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isTriageOpen, setIsTriageOpen] = useState(false);
 
   // Quick Walk-In Appointment Form State
   const [selectedPatientId, setSelectedPatientId] = useState('');
@@ -72,6 +75,8 @@ export const ReceptionDashboard = () => {
         <title>Reception Desk | AegisCare ERP</title>
       </Helmet>
 
+      <AISmartTriageModal isOpen={isTriageOpen} onClose={() => setIsTriageOpen(false)} />
+
       {/* 1. GREETING HERO CARD */}
       <div className="bg-gradient-to-r from-amber-700 via-orange-800 to-slate-900 rounded-3xl p-8 text-white shadow-[0_4px_20px_rgba(15,23,42,0.08)] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="absolute -top-12 -right-12 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -86,8 +91,17 @@ export const ReceptionDashboard = () => {
           </h1>
 
           <p className="text-xs text-amber-100/90 font-medium leading-relaxed">
-            Register new patient profiles (UPID), scan universal health passports, process walk-in check-in queues, and allocate emergency ward beds.
+            Register new patient profiles (UPID), scan health passports, process walk-in queues, and run AI Smart Emergency Triage.
           </p>
+
+          <div className="pt-2">
+            <button
+              onClick={() => setIsTriageOpen(true)}
+              className="px-5 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-xl transition flex items-center gap-2"
+            >
+              🚑 Launch AI Smart Triage System
+            </button>
+          </div>
         </div>
 
         <div className="relative z-10 shrink-0">

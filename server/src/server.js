@@ -15,6 +15,8 @@ const receptionRoutes = require('./routes/receptionRoutes');
 const patientRoutes = require('./routes/patientRoutes');
 const pharmacyRoutes = require('./routes/pharmacyRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const reminderRoutes = require('./routes/reminderRoutes');
+const { startReminderScheduler } = require('./services/reminderScheduler');
 
 const app = express();
 const server = http.createServer(app);
@@ -54,6 +56,7 @@ app.use('/api/v1/reception', receptionRoutes);
 app.use('/api/v1/patients', patientRoutes);
 app.use('/api/v1/pharmacy', pharmacyRoutes);
 app.use('/api/v1/ai', aiRoutes);
+app.use('/api/v1/reminders', reminderRoutes);
 
 // Fallback Route Aliases (in case VITE_API_URL omits /api/v1)
 app.use('/auth', authRoutes);
@@ -64,6 +67,7 @@ app.use('/reception', receptionRoutes);
 app.use('/patients', patientRoutes);
 app.use('/pharmacy', pharmacyRoutes);
 app.use('/ai', aiRoutes);
+app.use('/reminders', reminderRoutes);
 
 app.get('/', (req, res) => {
   res.json({
@@ -89,5 +93,6 @@ const PORT = process.env.PORT || 8080;
 connectDB().then(() => {
   server.listen(PORT, () => {
     console.log(`🚀 Hospital Management Platform API Server listening on port ${PORT}`);
+    startReminderScheduler(60000); // Poll upcoming appointment reminders every 60s
   });
 });
