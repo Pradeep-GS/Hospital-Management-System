@@ -1,0 +1,60 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Setup Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Client Dependencies
+        run: |
+          cd client
+          npm install
+
+      - name: Build Web Application
+        run: |
+          cd client
+          npm run build
+
+      - name: Sync Capacitor Android
+        run: |
+          cd client
+          npx cap sync android
+
+      - name: Make Gradlew Executable
+        run: chmod +x client/android/gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd client/android
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AegisCare-Patient-App-Debug
+          path: client/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
