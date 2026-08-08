@@ -4,19 +4,23 @@
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
-    "androidScheme": "https",
-    "cleartext": true
+    "url": "https://hospital-management-system-sagq.onrender.com",
+    "cleartext": true,
+    "allowNavigation": [
+      "hospital-management-system-sagq.onrender.com",
+      "*.onrender.com",
+      "*.vercel.app",
+      "localhost"
+    ]
   },
   "android": {
     "allowMixedContent": true
   },
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 2000,
+      "launchShowDuration": 1500,
       "launchAutoHide": true,
       "backgroundColor": "#0f172a",
-      "androidSplashResourceName": "splash",
-      "androidScaleType": "CENTER_CROP",
       "showSpinner": false
     },
     "StatusBar": {

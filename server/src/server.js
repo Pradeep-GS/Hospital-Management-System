@@ -69,15 +69,14 @@ app.use('/pharmacy', pharmacyRoutes);
 app.use('/ai', aiRoutes);
 app.use('/reminders', reminderRoutes);
 
-app.get('/', (req, res) => {
-  res.json({
-    status: 'ONLINE',
-    service: 'AegisCare Enterprise Multi-Tenant Hospital Management Platform API',
-    version: '1.0.0',
-    healthCheck: '/api/health',
-    apiBase: '/api/v1'
-  });
-});
+// Serve static frontend assets if client dist exists
+const path = require('path');
+const clientDistPath = path.join(__dirname, '../../client/dist');
+const fs = require('fs');
+
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+}
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -85,6 +84,23 @@ app.get('/api/health', (req, res) => {
     service: 'Hospital Management Platform API',
     version: '1.0.0',
     timestamp: new Date()
+  });
+});
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/auth') || req.path.startsWith('/ai') || req.path.startsWith('/doctors') || req.path.startsWith('/patients')) {
+    return next();
+  }
+  const indexPath = path.join(clientDistPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.json({
+    status: 'ONLINE',
+    service: 'AegisCare Enterprise Multi-Tenant Hospital Management Platform API',
+    version: '1.0.0',
+    healthCheck: '/api/health',
+    apiBase: '/api/v1'
   });
 });
 
