@@ -4,14 +4,8 @@
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://hospital-management-system-sagq.onrender.com",
-    "cleartext": true,
-    "allowNavigation": [
-      "hospital-management-system-sagq.onrender.com",
-      "*.onrender.com",
-      "*.vercel.app",
-      "localhost"
-    ]
+    "androidScheme": "https",
+    "cleartext": true
   },
   "android": {
     "allowMixedContent": true
