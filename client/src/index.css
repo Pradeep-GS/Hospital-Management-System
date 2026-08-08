@@ -101,3 +101,11 @@
 #nprogress .peg {
   box-shadow: 0 0 10px #2563EB, 0 0 5px #2563EB !important;
 }
+
+/* Mobile Safe Area Inset Support */
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top, 0px), 6px);
+}
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+}

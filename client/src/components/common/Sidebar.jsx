@@ -1,14 +1,28 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   Stethoscope, LayoutDashboard, Calendar, FileText, Pill, Users,
   Building2, QrCode, UserPlus, Bed, Wind, Receipt, Clock,
-  Settings, LogOut, ChevronRight, Activity
+  Settings, LogOut, ChevronRight, Activity, X
 } from 'lucide-react';
 
 export const Sidebar = () => {
   const { role, user, logout } = useAuth();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile drawer on route navigation
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
+
+  // Listen for global open-mobile-sidebar event from Header hamburger button
+  useEffect(() => {
+    const handleOpen = () => setIsMobileOpen(true);
+    window.addEventListener('open-mobile-sidebar', handleOpen);
+    return () => window.removeEventListener('open-mobile-sidebar', handleOpen);
+  }, []);
 
   // Role-scoped Navigation Routing
   const getNavItems = () => {
@@ -70,25 +84,36 @@ export const Sidebar = () => {
 
   const navItems = getNavItems();
 
-  return (
-    <aside className="w-64 bg-[#F8FAFC] border-r border-[#E2E8F0] flex flex-col justify-between shrink-0 min-h-screen font-['Inter',sans-serif]">
+  const renderSidebarContent = (isMobile = false) => (
+    <div className="flex flex-col justify-between h-full">
       <div>
         {/* Enterprise Brand Header */}
-        <div className="p-5 border-b border-[#E2E8F0] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20 text-white">
-            <Stethoscope className="w-5 h-5" />
+        <div className="p-4 sm:p-5 border-b border-[#E2E8F0] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20 text-white shrink-0">
+              <Stethoscope className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-base text-slate-900 tracking-tight leading-none font-['Poppins',sans-serif]">
+                AegisCare <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded border border-blue-200">v1.0</span>
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">Enterprise Hospital ERP</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-extrabold text-base text-slate-900 tracking-tight leading-none font-['Poppins',sans-serif]">
-              AegisCare <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded border border-blue-200">v1.0</span>
-            </h2>
-            <p className="text-[11px] text-slate-500 font-medium mt-0.5">Enterprise Hospital ERP</p>
-          </div>
+
+          {isMobile && (
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Navigation List */}
-        <div className="p-3.5 space-y-1.5">
-          <p className="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+        <div className="p-3.5 space-y-1.5 overflow-y-auto max-h-[calc(100vh-200px)]">
+          <p className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
             Portal Navigation
           </p>
           {navItems.map((item) => {
@@ -97,6 +122,7 @@ export const Sidebar = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={() => isMobile && setIsMobileOpen(false)}
                 className={({ isActive }) =>
                   `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all ${
                     isActive
@@ -125,7 +151,7 @@ export const Sidebar = () => {
       {/* Sidebar User Footer */}
       <div className="p-4 border-t border-[#E2E8F0] space-y-3 bg-white/60">
         <div className="p-3 bg-white rounded-xl border border-[#E2E8F0] text-xs shadow-2xs">
-          <p className="font-bold text-slate-900 leading-tight">{user?.fullName}</p>
+          <p className="font-bold text-slate-900 leading-tight truncate">{user?.fullName}</p>
           <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">{user?.email}</p>
         </div>
 
@@ -136,7 +162,32 @@ export const Sidebar = () => {
           <LogOut className="w-3.5 h-3.5" /> Sign Out
         </button>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* 1. Desktop & Tablet Sidebar (Hidden on mobile < 768px) */}
+      <aside className="hidden md:flex w-64 bg-[#F8FAFC] border-r border-[#E2E8F0] flex-col justify-between shrink-0 min-h-screen font-['Inter',sans-serif]">
+        {renderSidebarContent(false)}
+      </aside>
+
+      {/* 2. Mobile Drawer Overlay (Slide-over on phone screens) */}
+      {isMobileOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsMobileOpen(false)}
+          />
+
+          {/* Drawer Menu */}
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#F8FAFC] shadow-2xl z-50 h-full">
+            {renderSidebarContent(true)}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

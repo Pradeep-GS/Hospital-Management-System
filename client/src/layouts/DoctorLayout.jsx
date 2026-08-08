@@ -9,7 +9,7 @@ export const DoctorLayout = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Header title="Doctor Clinical Workbench" />
-        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 overflow-y-auto pb-24 md:pb-8">
           <Outlet />
         </main>
       </div>
