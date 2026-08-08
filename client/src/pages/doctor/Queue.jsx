@@ -39,24 +39,26 @@ export const Queue = () => {
   if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading Queue...</div>;
 
   return (
-    <div className="space-y-6 font-['Inter',sans-serif]">
+    <div className="space-y-4 sm:space-y-6 font-['Inter',sans-serif]">
       <Helmet>
         <title>Today's Queue | AegisCare ERP</title>
       </Helmet>
 
-      <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex items-center justify-between">
+      {/* Header Container - 100% Mobile Responsive */}
+      <div className="bg-white border border-slate-200 p-4 sm:p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
-            <Clock className="w-5 h-5 text-blue-600" /> Today's Live Consultation Queue
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2 font-['Poppins',sans-serif]">
+            <Clock className="w-5 h-5 text-blue-600 shrink-0" /> Today's Live Consultation Queue
           </h2>
-          <p className="text-xs text-slate-500">Manage patient check-ins and unlock EMR clinical windows</p>
+          <p className="text-xs text-slate-500 mt-0.5">Manage patient check-ins and unlock EMR clinical windows</p>
         </div>
-        <span className="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-xl border border-blue-200">
+        <span className="self-start sm:self-auto text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1.5 rounded-xl border border-blue-200 shrink-0">
           Total Queue: {queue.length} Patients
         </span>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+      {/* Queue Items List */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-6 shadow-sm space-y-3">
         {queue.map((apt) => {
           const isActive = apt.status === 'ACTIVE';
           const isCheckedIn = apt.status === 'CHECKED_IN';
@@ -65,29 +67,31 @@ export const Queue = () => {
           return (
             <div
               key={apt._id}
-              className={`p-4 rounded-xl border flex items-center justify-between text-xs transition-all ${
+              className={`p-3.5 sm:p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition-all ${
                 isActive
-                  ? 'bg-blue-50/80 border-blue-300 shadow-2xs'
+                  ? 'bg-blue-50/90 border-blue-300 shadow-sm'
                   : 'bg-slate-50 border-slate-200 hover:border-slate-300'
               }`}
             >
-              <div className="flex items-center gap-4">
-                <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold font-mono text-xs ${
+              {/* Patient Info */}
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold font-mono text-xs shrink-0 ${
                   isActive ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-200 text-slate-700'
                 }`}>
                   #{apt.queuePosition || 1}
                 </span>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">{apt.patientName}</h4>
-                  <div className="flex items-center gap-3 text-slate-500 mt-0.5 font-mono text-[11px]">
-                    <span>Appt: {apt.appointmentNumber}</span>
-                    <span>Channel: {apt.bookingChannel}</span>
+                <div className="min-w-0">
+                  <h4 className="font-bold text-slate-900 text-sm truncate">{apt.patientName}</h4>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-slate-500 mt-0.5 font-mono text-[11px]">
+                    <span className="truncate">Appt: {apt.appointmentNumber}</span>
+                    <span className="truncate">Channel: {apt.bookingChannel}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+              {/* Status and Action Buttons */}
+              <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 shrink-0">
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                   isActive
                     ? 'bg-blue-600 text-white'
                     : isCheckedIn
@@ -102,7 +106,7 @@ export const Queue = () => {
                 {isCheckedIn && (
                   <button
                     onClick={() => handleActivate(apt._id)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-2xs"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-2xs text-xs active:scale-95 transition-all"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" /> Activate Consultation
                   </button>
@@ -111,7 +115,7 @@ export const Queue = () => {
                 {isActive && (
                   <button
                     onClick={() => navigate('/doctor/emr')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-2xs"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-2xs text-xs active:scale-95 transition-all"
                   >
                     Open EMR <ArrowRight className="w-3.5 h-3.5" />
                   </button>
