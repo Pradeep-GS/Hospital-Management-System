@@ -19,7 +19,7 @@ const autoSeedDemoData = async () => {
       console.log('🌱 No users found in database. Running seed script...');
       const seedModule = require('../scripts/seedDatabase');
       if (typeof seedModule === 'function') {
-        await seedModule();
+        await seedModule(true);
       }
     }
   } catch (err) {

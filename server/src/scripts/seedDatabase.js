@@ -14,16 +14,16 @@ const {
   InventoryMachinery, PharmacyItem, Invoice
 } = require('../models');
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  console.error('❌ MONGODB_URI not set in .env file. Exiting.');
-  process.exit(1);
-}
-
-async function seed() {
-  await mongoose.connect(MONGODB_URI);
-  console.log('✅ Connected to MongoDB Atlas');
+async function seed(isAuto = false) {
+  if (mongoose.connection.readyState !== 1) {
+    if (!MONGODB_URI) {
+      console.error('❌ MONGODB_URI not set in .env file.');
+      if (!isAuto) process.exit(1);
+      return;
+    }
+    await mongoose.connect(MONGODB_URI);
+    console.log('✅ Connected to MongoDB Atlas for seeding');
+  }
 
   // ── 1. Clear existing collections ──────────────────────────────────────────
   console.log('\n🗑️  Clearing existing collections...');
@@ -403,11 +403,17 @@ async function seed() {
   console.log('  Patient       → john.doe@gmail.com          / patient123');
   console.log('  Pharmacy      → pharmacy@metrohospital.org  / pharm123');
 
-  await mongoose.connection.close();
-  process.exit(0);
+  if (!isAuto && require.main === module) {
+    await mongoose.connection.close();
+    process.exit(0);
+  }
 }
 
-seed().catch((err) => {
-  console.error('❌ Seed failed:', err);
-  process.exit(1);
-});
+module.exports = seed;
+
+if (require.main === module) {
+  seed(false).catch((err) => {
+    console.error('❌ Seed failed:', err);
+    process.exit(1);
+  });
+}
