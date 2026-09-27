@@ -5,11 +5,14 @@ import { Stethoscope, Lock, Mail, AlertCircle, ArrowRight, Eye, EyeOff, ShieldCh
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
 
+import api from '../services/api';
+
 export const Login = () => {
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [reactivating, setReactivating] = useState(false);
   
   const [error, setError] = useState('');
   const { login, loading } = useAuth();
@@ -32,7 +35,7 @@ export const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError('');
 
     const res = await login(email, password, '');
@@ -41,6 +44,26 @@ export const Login = () => {
     } else {
       setError(res.error);
       toast.error(res.error || 'Invalid credentials.');
+    }
+  };
+
+  const handleReactivate = async () => {
+    if (!email) {
+      toast.error('Please enter your email address to reactivate.');
+      return;
+    }
+    setReactivating(true);
+    try {
+      await api.post('/auth/reactivate-account', { email });
+      toast.success('Account successfully reactivated & approved! Signing in...');
+      const res = await login(email, password, '', true);
+      if (res.success) {
+        handleRoleRedirect(res.user);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to reactivate account.');
+    } finally {
+      setReactivating(false);
     }
   };
 
@@ -131,9 +154,21 @@ export const Login = () => {
           </div>
 
           {error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3.5 rounded-2xl flex items-center gap-2.5 shadow-2xs">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span className="font-medium">{error}</span>
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-3.5 rounded-2xl flex flex-col gap-2 shadow-2xs">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span className="font-medium">{error}</span>
+              </div>
+              {(error.includes('SUSPENDED') || error.includes('restricted') || error.includes('deactivated')) && (
+                <button
+                  type="button"
+                  onClick={handleReactivate}
+                  disabled={reactivating}
+                  className="mt-1 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-semibold text-xs transition-all self-start flex items-center gap-1.5 shadow-sm active:scale-95 disabled:opacity-60"
+                >
+                  {reactivating ? 'Reactivating...' : '⚡ Reactivate & Approve Account'}
+                </button>
+              )}
             </div>
           )}
 

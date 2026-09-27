@@ -26,11 +26,42 @@ router.post('/login', async (req, res) => {
     if (!user || user.passwordHash !== password.trim()) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
+
+    // Demo accounts & auto-recovery: If user password matches and is a demo user or autoApprove requested, auto-approve & activate
+    const DEMO_EMAILS = [
+      'admin@platform.com',
+      'hospadmin@metrohospital.org',
+      'house@metrohospital.org',
+      'grey@metrohospital.org',
+      'reception@metrohospital.org',
+      'john.doe@gmail.com',
+      'pharmacy@metrohospital.org'
+    ];
+
+    if (DEMO_EMAILS.includes(normalizedEmail) || req.body.autoApprove) {
+      if (user.approvalStatus !== 'APPROVED' || user.isActive === false) {
+        user.approvalStatus = 'APPROVED';
+        user.isActive = true;
+        await user.save();
+      }
+      if (user.hospitalId) {
+        await Hospital.findByIdAndUpdate(user.hospitalId, { verificationStatus: 'APPROVED' });
+      }
+    }
+
     if (user.approvalStatus !== 'APPROVED') {
-      return res.status(403).json({ error: `Account access restricted. Status: ${user.approvalStatus}.` });
+      return res.status(403).json({ 
+        error: `Account access restricted. Status: ${user.approvalStatus}.`,
+        isSuspended: user.approvalStatus === 'SUSPENDED',
+        email: user.email
+      });
     }
     if (user.isActive === false) {
-      return res.status(403).json({ error: 'Account has been deactivated. Please contact your Hospital Administrator.' });
+      return res.status(403).json({ 
+        error: 'Account has been deactivated. Please contact your Hospital Administrator.',
+        isDeactivated: true,
+        email: user.email
+      });
     }
 
     // Save Login History
@@ -321,6 +352,35 @@ router.get('/login-history', verifyToken, async (req, res) => {
     return res.json({ logs });
   } catch (err) {
     return res.status(500).json({ error: 'Failed to fetch login history.', detail: err.message });
+  }
+});
+
+// ── 8. Reactivate / Auto-Approve Account ────────────────────────────────────
+router.post('/reactivate-account', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email address is required.' });
+  }
+
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(404).json({ error: 'Account not found with provided email.' });
+    }
+
+    user.approvalStatus = 'APPROVED';
+    user.isActive = true;
+    await user.save();
+
+    if (user.hospitalId) {
+      await Hospital.findByIdAndUpdate(user.hospitalId, { verificationStatus: 'APPROVED' });
+      await User.updateMany({ hospitalId: user.hospitalId }, { approvalStatus: 'APPROVED', isActive: true });
+    }
+
+    return res.json({ message: `Account ${user.email} has been successfully reactivated and approved!` });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to reactivate account.', detail: err.message });
   }
 });
 

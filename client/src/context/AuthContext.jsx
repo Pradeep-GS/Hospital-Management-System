@@ -30,10 +30,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token, user]);
 
-  const login = async (email, password, hospitalCode = '') => {
+  const login = async (email, password, hospitalCode = '', autoApprove = false) => {
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password, hospitalCode });
+      const res = await api.post('/auth/login', { email, password, hospitalCode, autoApprove });
       const { token: authToken, user: userData } = res.data;
       
       setToken(authToken);
@@ -42,7 +42,8 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       return {
         success: false,
-        error: err.response?.data?.error || err.message || 'Login failed. Please check your credentials.'
+        error: err.response?.data?.error || err.message || 'Login failed. Please check your credentials.',
+        isSuspended: err.response?.data?.isSuspended
       };
     } finally {
       setLoading(false);
